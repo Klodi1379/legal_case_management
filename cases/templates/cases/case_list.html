@@ -1,0 +1,38 @@
+<!-- cases/templates/cases/case_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Cases</h2>
+<a href="{% url 'cases:case_create' %}">Create New Case</a>
+<table>
+    <thead>
+        <tr>
+            <th>Case Number</th>
+            <th>Title</th>
+            <th>Client</th>
+            <th>Status</th>
+            <th>Type</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for case in cases %}
+        <tr>
+            <td>{{ case.case_number }}</td>
+            <td>{{ case.title }}</td>
+            <td>{{ case.client.user.get_full_name }}</td>
+            <td>{{ case.get_status_display }}</td>
+            <td>{{ case.get_case_type_display }}</td>
+            <td>
+                <a href="{% url 'cases:case_detail' case.id %}">View</a>
+                <a href="{% url 'cases:case_update' case.id %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No cases found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

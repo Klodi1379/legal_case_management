@@ -1,0 +1,12 @@
+<!-- cases/templates/cases/case_form.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{% if form.instance.pk %}Edit Case{% else %}Create New Case{% endif %}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+</form>
+<a href="{% url 'cases:case_list' %}">Back to Case List</a>
+{% endblock %}
