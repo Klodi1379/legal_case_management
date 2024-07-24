@@ -2,7 +2,6 @@
 
 # accounts/views.py
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegistrationForm, UserUpdateForm
 
@@ -12,7 +11,7 @@ def register(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('dashboard')
+            return redirect('accounts:profile')  # Redirect to profile page
     else:
         form = UserRegistrationForm()
     return render(request, 'accounts/register.html', {'form': form})
@@ -23,7 +22,7 @@ def profile(request):
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('profile')
+            return redirect('accounts:profile')  # Redirect to profile page
     else:
         form = UserUpdateForm(instance=request.user)
     return render(request, 'accounts/profile.html', {'form': form})

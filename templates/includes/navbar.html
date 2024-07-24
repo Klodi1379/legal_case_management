@@ -53,7 +53,12 @@
                         <li><a class="dropdown-item" href="{% url 'accounts:profile' %}">Profile</a></li>
                         <li><a class="dropdown-item" href="{% url 'accounts:password_change' %}">Change Password</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{% url 'accounts:logout' %}">Logout</a></li>
+                        <li>
+                            <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item" style="display: inline; padding: 0; border: none; background: none; cursor: pointer;">Logout</button>
+                            </form>
+                        </li>
                     </ul>
                 </li>
                 {% else %}
