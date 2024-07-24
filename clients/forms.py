@@ -6,4 +6,5 @@ from .models import Client
 class ClientForm(forms.ModelForm):
     class Meta:
         model = Client
-        fields = ['company_name', 'industry', 'notes']
+        fields = ['company_name','industry', 'notes']
+        
