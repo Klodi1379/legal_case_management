@@ -6,7 +6,7 @@ app_name = 'documents'
 
 urlpatterns = [
     path('upload/', views.document_upload, name='document_upload'),
-    path('case/<int:case_id>/', views.document_list, name='document_list'),
     path('recent/', views.recent_documents, name='recent_documents'),
-    path('<int:document_id>/delete/', views.document_delete, name='document_delete'),
+    path('<int:case_id>/', views.document_list, name='document_list'),
+    path('delete/<int:document_id>/', views.document_delete, name='document_delete'),
 ]

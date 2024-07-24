@@ -17,6 +17,9 @@
                     <a class="nav-link" href="{% url 'clients:client_list' %}">Clients</a>
                 </li>
                 {% if user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:dashboard' %}">Dashboard</a>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Management

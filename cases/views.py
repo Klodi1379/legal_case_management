@@ -49,7 +49,7 @@ def case_update(request, case_id):
         if form.is_valid():
             form.save()
             messages.success(request, 'Case updated successfully.')
-            return redirect('case_detail', case_id=case.id)
+            return redirect('cases:case_detail', case_id=case.id)
     else:
         form = CaseForm(instance=case)
     return render(request, 'cases/case_form.html', {'form': form})
