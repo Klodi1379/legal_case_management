@@ -1,0 +1,28 @@
+<!-- clients/templates/clients/client_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}
+    Client Details: {{ client.user.get_full_name }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Client Details</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ client.user.get_full_name }}</p>
+                    <p><strong>Company:</strong> {{ client.company_name }}</p>
+                    <p><strong>Industry:</strong> {{ client.industry }}</p>
+                    <p><strong>Notes:</strong> {{ client.notes }}</p>
+                    <a href="{% url 'clients:client_update' client.id %}" class="btn btn-warning mt-3">Edit Client</a>
+                    <a href="{% url 'clients:client_list' %}" class="btn btn-secondary mt-3">Back to Client List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

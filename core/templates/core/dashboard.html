@@ -1,0 +1,38 @@
+<!-- templates/core/dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col">
+            <h1>Welcome to the Dashboard</h1>
+            <p class="lead">Here you can see an overview of your activities.</p>
+            <div class="card-deck mt-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Cases</h5>
+                        <p class="card-text">Manage and view all your cases.</p>
+                        <a href="{% url 'cases:case_list' %}" class="btn btn-primary">View Cases</a>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Clients</h5>
+                        <p class="card-text">Manage and view all your clients.</p>
+                        <a href="{% url 'clients:client_list' %}" class="btn btn-primary">View Clients</a>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Documents</h5>
+                        <p class="card-text">Manage and view all your documents.</p>
+                        <a href="{% url 'documents:recent_documents' %}" class="btn btn-primary">View Documents</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

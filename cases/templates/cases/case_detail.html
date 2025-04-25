@@ -1,0 +1,59 @@
+<!-- cases/templates/cases/case_detail.html -->
+{% extends "base.html" %}
+
+{% block title %}
+    Case Details: {{ case.title }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Case Details: {{ case.title }}</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>Case Number:</strong> {{ case.case_number }}</p>
+                    <p><strong>Client:</strong> {{ case.client.user.get_full_name }}</p>
+                    <p><strong>Assigned Lawyer:</strong> {{ case.assigned_lawyer.get_full_name }}</p>
+                    <p><strong>Status:</strong> {{ case.get_status_display }}</p>
+                    <p><strong>Type:</strong> {{ case.get_case_type_display }}</p>
+                    <p><strong>Description:</strong> {{ case.description }}</p>
+                    <p><strong>Open Date:</strong> {{ case.open_date }}</p>
+                    {% if case.close_date %}
+                    <p><strong>Close Date:</strong> {{ case.close_date }}</p>
+                    {% endif %}
+                    <a href="{% url 'cases:case_update' case.id %}" class="btn btn-warning mt-3">Edit Case</a>
+                </div>
+            </div>
+
+            <div class="card shadow mt-4">
+                <div class="card-header bg-secondary text-white">
+                    <h3 class="mb-0">Case Notes</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group mb-3">
+                            {{ note_form.as_p }}
+                        </div>
+                        <button type="submit" class="btn btn-success">Add Note</button>
+                    </form>
+                    <hr>
+                    <ul class="list-group">
+                        {% for note in notes %}
+                        <li class="list-group-item">
+                            <p>{{ note.content }}</p>
+                            <small>By {{ note.author.get_full_name }} on {{ note.created_at }}</small>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center">No notes yet.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

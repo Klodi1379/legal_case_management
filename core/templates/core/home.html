@@ -1,0 +1,15 @@
+<!-- templates/core/home.html -->
+{% extends "base.html" %}
+
+{% block title %}Welcome to LCMS{% endblock %}
+
+{% block content %}
+<div class="jumbotron mt-5">
+    <h1 class="display-4">Welcome to Legal Case Management System</h1>
+    <p class="lead">Manage your cases, clients, and documents efficiently.</p>
+    <hr class="my-4">
+    <p>Get started by exploring your cases or adding a new client.</p>
+    <a class="btn btn-primary btn-lg" href="{% url 'cases:case_list' %}" role="button">View Cases</a>
+    <a class="btn btn-secondary btn-lg" href="{% url 'clients:client_list' %}" role="button">View Clients</a>
+</div>
+{% endblock %}

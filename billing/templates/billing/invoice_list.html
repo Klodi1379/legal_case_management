@@ -1,0 +1,39 @@
+<!-- billing/templates/billing/invoice_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Invoices</h2>
+<a href="{% url 'billing:invoice_create' %}" class="btn btn-primary">Create Invoice</a>
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>Invoice Number</th>
+            <th>Case</th>
+            <th>Issue Date</th>
+            <th>Due Date</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for invoice in invoices %}
+        <tr>
+            <td>{{ invoice.invoice_number }}</td>
+            <td>{{ invoice.case.title }}</td>
+            <td>{{ invoice.issue_date }}</td>
+            <td>{{ invoice.due_date }}</td>
+            <td>${{ invoice.total }}</td>
+            <td>{{ invoice.get_status_display }}</td>
+            <td>
+                <a href="{% url 'billing:invoice_detail' invoice.id %}" class="btn btn-sm btn-info">View</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No invoices found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
