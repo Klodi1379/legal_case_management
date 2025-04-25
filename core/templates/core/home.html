@@ -1,15 +1,209 @@
 <!-- templates/core/home.html -->
 {% extends "base.html" %}
 
-{% block title %}Welcome to LCMS{% endblock %}
+{% block title %}Welcome to LexPrudentia{% endblock %}
+
+{% block extra_css %}
+<style>
+    .hero-section {
+        background: linear-gradient(rgba(44, 62, 80, 0.9), rgba(44, 62, 80, 0.9)), url('https://images.unsplash.com/photo-1589829545856-d10d557cf95f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 80px 0;
+        border-radius: 8px;
+        margin-bottom: 40px;
+    }
+
+    .hero-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
+        font-size: 3rem;
+        margin-bottom: 20px;
+    }
+
+    .hero-subtitle {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 300;
+        font-size: 1.5rem;
+        margin-bottom: 30px;
+    }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        color: var(--accent-color);
+        margin-bottom: 20px;
+    }
+
+    .feature-title {
+        font-family: 'Playfair Display', serif;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .feature-card {
+        padding: 30px;
+        text-align: center;
+        height: 100%;
+    }
+
+    .cta-section {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 60px 0;
+        border-radius: 8px;
+        margin-top: 40px;
+    }
+
+    .testimonial-card {
+        padding: 30px;
+        border-left: 4px solid var(--accent-color);
+    }
+
+    .testimonial-text {
+        font-style: italic;
+        margin-bottom: 20px;
+    }
+
+    .testimonial-author {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="jumbotron mt-5">
-    <h1 class="display-4">Welcome to Legal Case Management System</h1>
-    <p class="lead">Manage your cases, clients, and documents efficiently.</p>
-    <hr class="my-4">
-    <p>Get started by exploring your cases or adding a new client.</p>
-    <a class="btn btn-primary btn-lg" href="{% url 'cases:case_list' %}" role="button">View Cases</a>
-    <a class="btn btn-secondary btn-lg" href="{% url 'clients:client_list' %}" role="button">View Clients</a>
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="container text-center">
+        <h1 class="hero-title">Elegant Legal Case Management</h1>
+        <p class="hero-subtitle">Streamline your practice with sophisticated tools designed for legal professionals</p>
+        <div class="mt-4">
+            {% if user.is_authenticated %}
+            <a class="btn btn-accent btn-lg me-3" href="{% url 'core:dashboard' %}">
+                <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+            </a>
+            {% else %}
+            <a class="btn btn-accent btn-lg me-3" href="{% url 'accounts:login' %}">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </a>
+            <a class="btn btn-outline-light btn-lg" href="{% url 'accounts:register' %}">
+                <i class="fas fa-user-plus me-2"></i>Register
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container">
+    <div class="text-center mb-5">
+        <h2 class="page-title">Sophisticated Solutions for Legal Professionals</h2>
+        <p class="lead">Our platform offers a comprehensive suite of tools to manage your legal practice with elegance and efficiency.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <h3 class="feature-title">Case Management</h3>
+                <p>Organize and track all your legal matters in one place with our intuitive case management system.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3 class="feature-title">Client Relations</h3>
+                <p>Maintain detailed client records and strengthen relationships with comprehensive client management.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-contract"></i>
+                </div>
+                <h3 class="feature-title">Document Management</h3>
+                <p>Store, organize, and quickly retrieve all your legal documents with advanced search capabilities.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-invoice-dollar"></i>
+                </div>
+                <h3 class="feature-title">Billing & Invoicing</h3>
+                <p>Track time, generate professional invoices, and manage your firm's finances with ease.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3 class="feature-title">AI-Powered Tools</h3>
+                <p>Leverage cutting-edge AI technology for legal research, document analysis, and more.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title">Secure & Confidential</h3>
+                <p>Rest assured that your sensitive legal information is protected with enterprise-grade security.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials Section -->
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h2 class="page-title">What Legal Professionals Say</h2>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card testimonial-card">
+                <p class="testimonial-text">"This platform has transformed how our firm manages cases. The elegant interface and powerful features have significantly improved our efficiency."</p>
+                <p class="testimonial-author">— Jonathan Harrington, Senior Partner</p>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card testimonial-card">
+                <p class="testimonial-text">"The AI-powered tools have revolutionized our legal research capabilities. We're able to provide better service to our clients in less time."</p>
+                <p class="testimonial-author">— Elizabeth Montgomery, Legal Counsel</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="cta-section">
+    <div class="container text-center">
+        <h2 class="mb-4" style="font-family: 'Playfair Display', serif;">Elevate Your Legal Practice Today</h2>
+        <p class="lead mb-4">Join the community of distinguished legal professionals who trust our platform.</p>
+        {% if user.is_authenticated %}
+        <a class="btn btn-accent btn-lg" href="{% url 'core:dashboard' %}">
+            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+        </a>
+        {% else %}
+        <a class="btn btn-accent btn-lg" href="{% url 'accounts:register' %}">
+            <i class="fas fa-user-plus me-2"></i>Get Started
+        </a>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}
