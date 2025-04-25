@@ -1,0 +1,39 @@
+<!-- clients/templates/clients/client_form.html -->
+{% extends "base.html" %}
+{% load add_class%}
+{% block title %}
+    {% if form.instance.pk %}Edit Client{% else %}Add New Client{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0 text-center">{% if form.instance.pk %}Edit Client{% else %}Add New Client{% endif %}</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {% for field in form %}
+                            <div class="form-group mb-3">
+                                {{ field.label_tag }}
+                                {{ field|add_class:"form-control" }}
+                                {% if field.help_text %}
+                                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                        <button type="submit" class="btn btn-success btn-block">Save</button>
+                    </form>
+                    <a href="{% url 'clients:client_list' %}" class="btn btn-secondary btn-block mt-3">Back to Client List</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

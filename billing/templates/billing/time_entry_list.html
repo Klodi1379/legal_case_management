@@ -1,0 +1,35 @@
+<!-- billing/templates/billing/time_entry_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Time Entries</h2>
+<a href="{% url 'billing:time_entry_create' %}" class="btn btn-primary">Add Time Entry</a>
+<table class="table mt-3">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Case</th>
+            <th>Hours</th>
+            <th>Description</th>
+            <th>Rate</th>
+            <th>Total</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in time_entries %}
+        <tr>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.case.title }}</td>
+            <td>{{ entry.hours }}</td>
+            <td>{{ entry.description }}</td>
+            <td>${{ entry.rate }}</td>
+            <td>${{ entry.total }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6">No time entries found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
