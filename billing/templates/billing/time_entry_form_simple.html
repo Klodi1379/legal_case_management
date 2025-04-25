@@ -1,0 +1,87 @@
+<!-- billing/templates/billing/time_entry_form_simple.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Create Time Entry (Simple)</h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                    
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="case" class="form-label">Case *</label>
+                            <select name="case" id="case" class="form-select" required>
+                                <option value="">Select a case</option>
+                                {% for case in cases %}
+                                    <option value="{{ case.id }}" {% if form_data.case == case.id|stringformat:"i" %}selected{% endif %}>
+                                        {{ case.title }} ({{ case.case_number }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Select the case this time entry is for.
+                                {% if cases.count == 0 %}
+                                    <div class="alert alert-warning mt-2">
+                                        <strong>No open cases found!</strong> You need to <a href="{% url 'cases:case_create' %}">create a case</a> first.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="date" class="form-label">Date *</label>
+                            <input type="date" name="date" id="date" class="form-control" value="{{ form_data.date }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="hours" class="form-label">Hours *</label>
+                            <input type="number" name="hours" id="hours" class="form-control" value="{{ form_data.hours }}" step="0.01" min="0.01" required>
+                            <div class="form-text">Enter the number of hours worked (e.g., 1.5 for 1 hour and 30 minutes)</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="rate" class="form-label">Hourly Rate *</label>
+                            <input type="number" name="rate" id="rate" class="form-control" value="{{ form_data.rate }}" step="0.01" min="0.01" required>
+                            <div class="form-text">Enter the hourly billing rate</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea name="description" id="description" class="form-control" rows="3" required>{{ form_data.description }}</textarea>
+                            <div class="form-text">Describe the work performed</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" name="is_billable" id="is_billable" class="form-check-input" {% if form_data.is_billable %}checked{% endif %} checked>
+                            <label class="form-check-label" for="is_billable">
+                                Billable
+                            </label>
+                            <div class="form-text">Uncheck if this time should not be billed to the client</div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'billing:time_entry_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-2"></i>Save Time Entry
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
