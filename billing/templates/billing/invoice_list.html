@@ -2,20 +2,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Invoices</h2>
-<a href="{% url 'billing:invoice_create' %}" class="btn btn-primary">Create Invoice</a>
-<table class="table mt-3">
-    <thead>
-        <tr>
-            <th>Invoice Number</th>
-            <th>Case</th>
-            <th>Issue Date</th>
-            <th>Due Date</th>
-            <th>Total</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Invoices</h2>
+    <a href="{% url 'billing:invoice_create' %}" class="btn btn-primary">Create Invoice</a>
+</div>
+<div class="table-responsive">
+    <table class="table table-striped table-hover mt-3">
+        <thead style="background-color: var(--primary-color); color: white;">
+            <tr>
+                <th>Invoice Number</th>
+                <th>Case</th>
+                <th>Issue Date</th>
+                <th>Due Date</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
     <tbody>
         {% for invoice in invoices %}
         <tr>
@@ -36,4 +39,5 @@
         {% endfor %}
     </tbody>
 </table>
+</div>
 {% endblock %}

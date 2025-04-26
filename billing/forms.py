@@ -27,7 +27,7 @@ class InvoiceItemForm(forms.ModelForm):
 class PaymentForm(forms.ModelForm):
     class Meta:
         model = Payment
-        fields = ['amount', 'payment_date', 'payment_method', 'transaction_id']
+        fields = ['amount', 'payment_date', 'payment_method', 'reference_number', 'notes']
         widgets = {
             'payment_date': forms.DateInput(attrs={'type': 'date'}),
         }

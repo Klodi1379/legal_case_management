@@ -1,0 +1,160 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}Legal Research{% endblock %}
+
+{% block ai_content %}
+<div class="container">
+    <h1 class="page-title">AI Legal Research</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-search me-2"></i>Research Query</h5>
+                </div>
+                <div class="card-body">
+                    <form id="researchForm" method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="queryInput" class="form-label">Legal Question or Topic</label>
+                            <textarea class="form-control" id="queryInput" name="query" rows="3" placeholder="Enter your legal research question..." required></textarea>
+                            <div class="form-text">Be specific about the legal issue, jurisdiction, and context</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="caseSelect" class="form-label">Related Case (Optional)</label>
+                            <select class="form-select" id="caseSelect" name="case">
+                                <option value="" selected>-- Select Case --</option>
+                                {% for case in cases %}
+                                <option value="{{ case.id }}">{{ case.title }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select a case to provide additional context</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-accent" id="submitBtn">
+                                <i class="fas fa-search me-2"></i>Start Research
+                                <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if results %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Research Results</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window.print();">
+                            <i class="fas fa-print me-1"></i>Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download me-1"></i>Save
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="p-3 bg-light rounded mb-3">
+                        <strong>Query:</strong> {{ form.cleaned_data.query }}
+                    </div>
+
+                    <div class="research-results">
+                        {{ results.text|linebreaks }}
+                    </div>
+
+                    <div class="text-end mt-3">
+                        <span class="text-muted small">
+                            <i class="fas fa-clock me-1"></i>
+                            Processing time: {{ results.processing_time|floatformat:2 }} seconds
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Research Tips</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold mb-2">Be Specific</h6>
+                    <p class="text-muted small mb-3">Include relevant details like jurisdiction, time period, and specific legal concepts.</p>
+
+                    <h6 class="fw-bold mb-2">Use Legal Terminology</h6>
+                    <p class="text-muted small mb-3">Include specific legal terms and concepts relevant to your query.</p>
+
+                    <h6 class="fw-bold mb-2">Provide Context</h6>
+                    <p class="text-muted small mb-3">Link your query to a case for more relevant results.</p>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> AI research is a starting point. Always verify results with authoritative legal sources.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Searches</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">
+                            <div class="fw-medium">Contract breach remedies in California</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Apr 25, 2025</small>
+                                <button class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-redo-alt"></i>
+                                </button>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="fw-medium">Statute of limitations for medical malpractice</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Apr 24, 2025</small>
+                                <button class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-redo-alt"></i>
+                                </button>
+                            </div>
+                        </li>
+                        <li class="list-group-item">
+                            <div class="fw-medium">Employment at-will exceptions</div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">Apr 23, 2025</small>
+                                <button class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-redo-alt"></i>
+                                </button>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const researchForm = document.getElementById('researchForm');
+        if (researchForm) {
+            researchForm.addEventListener('submit', function() {
+                const submitButton = document.getElementById('submitBtn');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+
+                submitButton.disabled = true;
+                loadingSpinner.classList.remove('d-none');
+            });
+        }
+    });
+</script>
+{% endblock %}

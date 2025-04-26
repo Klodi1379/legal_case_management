@@ -6,20 +6,183 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Client Details</h2>
+<div class="container">
+    <h1 class="page-title">Client Profile</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-tie me-2"></i>{{ client.user.get_full_name }}</h5>
+                    <span class="badge bg-accent">Client</span>
                 </div>
                 <div class="card-body">
-                    <p><strong>Name:</strong> {{ client.user.get_full_name }}</p>
-                    <p><strong>Company:</strong> {{ client.company_name }}</p>
-                    <p><strong>Industry:</strong> {{ client.industry }}</p>
-                    <p><strong>Notes:</strong> {{ client.notes }}</p>
-                    <a href="{% url 'clients:client_update' client.id %}" class="btn btn-warning mt-3">Edit Client</a>
-                    <a href="{% url 'clients:client_list' %}" class="btn btn-secondary mt-3">Back to Client List</a>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-building fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Company</div>
+                                    <div class="fw-bold">{{ client.company_name|default:"Not specified" }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-industry fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Industry</div>
+                                    <div class="fw-bold">{{ client.industry|default:"Not specified" }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-envelope fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Email</div>
+                                    <div class="fw-bold">{{ client.user.email }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-phone fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Phone</div>
+                                    <div class="fw-bold">{{ client.phone|default:"Not provided" }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-map-marker-alt fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Address</div>
+                                    <div class="fw-bold">{{ client.address|default:"Not provided" }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-calendar-alt fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Client Since</div>
+                                    <div class="fw-bold">{{ client.created_at|date:"F j, Y" }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if client.notes %}
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-sticky-note me-2"></i>Notes</h6>
+                        <div class="p-3 bg-light rounded">
+                            {{ client.notes|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'clients:client_update' client.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Client
+                        </a>
+                        <a href="{% url 'clients:client_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Clients
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Client Cases</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for case in client.cases.all %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <a href="{% url 'cases:case_detail' case.id %}" class="text-decoration-none">
+                                    {{ case.title }}
+                                </a>
+                                <div class="text-muted small">{{ case.get_case_type_display }}</div>
+                            </div>
+                            <span class="badge {% if case.status == 'open' %}bg-success{% elif case.status == 'closed' %}bg-secondary{% else %}bg-accent{% endif %}">
+                                {{ case.get_status_display }}
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center py-4">
+                            <i class="fas fa-folder-open fa-2x mb-2 text-muted"></i>
+                            <p class="text-muted mb-0">No cases found for this client.</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{% url 'cases:case_create' %}?client={{ client.id }}" class="btn btn-accent btn-sm">
+                        <i class="fas fa-plus-circle me-2"></i>Create New Case
+                    </a>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Billing Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="text-muted">Outstanding Balance</div>
+                        <div class="fw-bold fs-5">${{ client.outstanding_balance|default:"0.00" }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="text-muted">Last Payment</div>
+                        <div>${{ client.last_payment_amount|default:"0.00" }}</div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">Payment Date</div>
+                        <div>{{ client.last_payment_date|date:"M d, Y"|default:"N/A" }}</div>
+                    </div>
+                    <hr>
+                    <div class="d-grid">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-invoice me-2"></i>View Invoices
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-envelope me-2"></i>Send Email
+                        </a>
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-upload me-2"></i>Upload Document
+                        </a>
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-calendar-plus me-2"></i>Schedule Meeting
+                        </a>
+                        <a href="#" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>Create Invoice
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

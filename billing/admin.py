@@ -43,7 +43,7 @@ class InvoiceItemAdmin(admin.ModelAdmin):
 
 @admin.register(Payment)
 class PaymentAdmin(admin.ModelAdmin):
-    list_display = ('invoice', 'amount', 'payment_date', 'payment_method', 'transaction_id')
+    list_display = ('invoice', 'amount', 'payment_date', 'payment_method', 'reference_number')
     list_filter = ('payment_date', 'payment_method')
-    search_fields = ('invoice__invoice_number', 'transaction_id')
+    search_fields = ('invoice__invoice_number', 'reference_number')
     date_hierarchy = 'payment_date'

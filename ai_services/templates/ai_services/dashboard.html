@@ -1,0 +1,209 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}AI Dashboard{% endblock %}
+
+{% block ai_content %}
+<div class="row mb-4">
+    <!-- Statistics Cards -->
+    <div class="col-md-4">
+        <div class="card border-primary h-100">
+            <div class="card-body">
+                <h5 class="card-title text-primary">
+                    <i class="fas fa-chart-line me-2"></i>Analysis Statistics
+                </h5>
+                <div class="row mt-4">
+                    <div class="col-md-4 text-center">
+                        <h3 class="mb-0">{{ total_analyses }}</h3>
+                        <p class="text-muted small">Total</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h3 class="mb-0 text-success">{{ completed_analyses }}</h3>
+                        <p class="text-muted small">Completed</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <h3 class="mb-0 text-danger">{{ failed_analyses }}</h3>
+                        <p class="text-muted small">Failed</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Models -->
+    <div class="col-md-4">
+        <div class="card border-success h-100">
+            <div class="card-body">
+                <h5 class="card-title text-success">
+                    <i class="fas fa-brain me-2"></i>Active Models
+                </h5>
+                <ul class="list-group list-group-flush mt-3">
+                    {% for model in active_models %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ model.name }}
+                        <span class="badge bg-success rounded-pill">{{ model.model_type }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted">No active models</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis by Type -->
+    <div class="col-md-4">
+        <div class="card border-info h-100">
+            <div class="card-body">
+                <h5 class="card-title text-info">
+                    <i class="fas fa-tasks me-2"></i>Analysis by Type
+                </h5>
+                <ul class="list-group list-group-flush mt-3">
+                    {% for analysis in analysis_by_type %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ analysis.analysis_type }}
+                        <span class="badge bg-info rounded-pill">{{ analysis.count }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item text-center text-muted">No analyses yet</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Analyses -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Analyses</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Document</th>
+                                <th>Model</th>
+                                <th>Status</th>
+                                <th>Requested By</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for analysis in recent_analyses %}
+                            <tr>
+                                <td>{{ analysis.id }}</td>
+                                <td>{{ analysis.get_analysis_type_display }}</td>
+                                <td>
+                                    {% if analysis.document %}
+                                    <a href="{% url 'documents:document_detail' analysis.document.id %}">
+                                        {{ analysis.document.title|truncatechars:30 }}
+                                    </a>
+                                    {% else %}
+                                    <span class="text-muted">N/A</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ analysis.llm_model.name }}</td>
+                                <td>
+                                    {% if analysis.status == 'COMPLETED' %}
+                                    <span class="badge bg-success">Completed</span>
+                                    {% elif analysis.status == 'FAILED' %}
+                                    <span class="badge bg-danger">Failed</span>
+                                    {% elif analysis.status == 'PROCESSING' %}
+                                    <span class="badge bg-warning">Processing</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ analysis.requested_by.username }}</td>
+                                <td>{{ analysis.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'ai_services:analysis_result' analysis.id %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center text-muted">No analyses yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Features Overview -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>AI Features Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-4">
+                        <div class="text-center">
+                            <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h5>Document Analysis</h5>
+                            <p class="text-muted">Analyze legal documents with AI to extract key information and insights.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="text-center">
+                            <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h5>Legal Research</h5>
+                            <p class="text-muted">Conduct legal research with AI assistance to find relevant information.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="text-center">
+                            <div class="feature-icon bg-info bg-gradient text-white rounded-circle mb-3">
+                                <i class="fas fa-file-signature"></i>
+                            </div>
+                            <h5>Document Generation</h5>
+                            <p class="text-muted">Generate legal documents based on templates and specific requirements.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-4">
+                        <div class="text-center">
+                            <div class="feature-icon bg-warning bg-gradient text-white rounded-circle mb-3">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
+                            <h5>Semantic Search</h5>
+                            <p class="text-muted">Search documents using natural language and find semantically similar content.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<style>
+    .feature-icon {
+        width: 4rem;
+        height: 4rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+</style>
+{% endblock %}

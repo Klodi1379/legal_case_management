@@ -1,0 +1,146 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}Semantic Search{% endblock %}
+
+{% block ai_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-search-plus me-2"></i>Semantic Document Search</h5>
+            </div>
+            <div class="card-body">
+                <form method="GET" action="{% url 'ai_services:semantic_search' %}" class="mb-4">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                {{ form.query }}
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select name="case" class="form-select" id="caseSelect">
+                                <option value="">-- All Cases --</option>
+                                {% for case in cases %}
+                                <option value="{{ case.id }}" {% if form.case.value == case.id %}selected{% endif %}>
+                                    {{ case.title }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <input type="number" name="limit" class="form-control" placeholder="Limit"
+                                   value="{{ form.limit.value|default:10 }}" min="1" max="100">
+                        </div>
+                        <div class="col-md-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search me-2"></i>Search
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                {% if form.query.value %}
+                <div class="search-results mt-4">
+                    <h5 class="mb-3">
+                        <i class="fas fa-list me-2"></i>
+                        Search Results for "{{ form.query.value }}"
+                    </h5>
+
+                    {% if results %}
+                    <div class="list-group">
+                        {% for result in results %}
+                        <a href="{% url 'documents:document_detail' result.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h5 class="mb-1">{{ result.title }}</h5>
+                                <small class="text-muted">
+                                    <span class="badge bg-info">{{ result.document_type }}</span>
+                                    <span class="badge bg-secondary">{{ result.similarity|floatformat:2 }}</span>
+                                </small>
+                            </div>
+                            {% if result.snippet %}
+                            <p class="mb-1">{{ result.snippet|truncatechars:200 }}</p>
+                            {% endif %}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        No documents found matching your search criteria.
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About Semantic Search</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">What is Semantic Search?</h6>
+                        <p>
+                            Semantic search goes beyond traditional keyword matching by understanding the meaning and context of your query.
+                            It uses AI-powered vector embeddings to find documents that are conceptually similar to your search terms.
+                        </p>
+                        <h6 class="fw-bold mt-3">Benefits</h6>
+                        <ul>
+                            <li>Find documents based on concepts, not just keywords</li>
+                            <li>Discover related documents you might miss with traditional search</li>
+                            <li>Search using natural language questions or statements</li>
+                            <li>Identify similar precedents or related legal documents</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold">Search Tips</h6>
+                        <ul>
+                            <li>Use natural language phrases instead of keywords</li>
+                            <li>Be specific about legal concepts you're looking for</li>
+                            <li>Filter by case to narrow down results</li>
+                            <li>Adjust the result limit to see more or fewer matches</li>
+                        </ul>
+                        <h6 class="fw-bold mt-3">Example Searches</h6>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <button class="btn btn-sm btn-outline-secondary example-search">
+                                Contract breach remedies
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary example-search">
+                                Liability limitations in agreements
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary example-search">
+                                Evidence admissibility requirements
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary example-search">
+                                Precedents for intellectual property disputes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Example search buttons
+        document.querySelectorAll('.example-search').forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelector('input[name="query"]').value = this.textContent.trim();
+            });
+        });
+    });
+</script>
+{% endblock %}

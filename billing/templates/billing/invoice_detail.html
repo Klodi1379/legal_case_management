@@ -1,68 +1,287 @@
 <!-- billing/templates/billing/invoice_detail.html -->
 {% extends "base.html" %}
 
+{% block title %}Invoice #{{ invoice.invoice_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .invoice-header {
+        border-bottom: 2px solid var(--accent-color);
+        padding-bottom: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .invoice-status {
+        font-size: 0.9rem;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+    }
+
+    .status-paid {
+        background-color: rgba(40, 167, 69, 0.1);
+        color: #28a745;
+        border: 1px solid rgba(40, 167, 69, 0.2);
+    }
+
+    .status-pending {
+        background-color: rgba(255, 193, 7, 0.1);
+        color: #ffc107;
+        border: 1px solid rgba(255, 193, 7, 0.2);
+    }
+
+    .status-overdue {
+        background-color: rgba(220, 53, 69, 0.1);
+        color: #dc3545;
+        border: 1px solid rgba(220, 53, 69, 0.2);
+    }
+
+    .invoice-summary {
+        background-color: var(--light-bg);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .summary-row:last-child {
+        border-bottom: none;
+    }
+
+    .summary-total {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        border-top: 2px solid var(--accent-color);
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+    }
+
+    .payment-badge {
+        font-size: 0.8rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<h2>Invoice: {{ invoice.invoice_number }}</h2>
-<p><strong>Case:</strong> {{ invoice.case.title }}</p>
-<p><strong>Issue Date:</strong> {{ invoice.issue_date }}</p>
-<p><strong>Due Date:</strong> {{ invoice.due_date }}</p>
-<p><strong>Status:</strong> {{ invoice.get_status_display }}</p>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Invoice</h1>
+        <div class="btn-group">
+            <a href="#" class="btn btn-outline-primary">
+                <i class="fas fa-print me-2"></i>Print
+            </a>
+            <a href="#" class="btn btn-outline-primary">
+                <i class="fas fa-file-pdf me-2"></i>Download PDF
+            </a>
+            <a href="#" class="btn btn-outline-primary">
+                <i class="fas fa-envelope me-2"></i>Email
+            </a>
+        </div>
+    </div>
 
-<h3>Items</h3>
-<a href="{% url 'billing:invoice_item_create' invoice.id %}" class="btn btn-primary">Add Item</a>
-<table class="table mt-3">
-    <thead>
-        <tr>
-            <th>Description</th>
-            <th>Quantity</th>
-            <th>Rate</th>
-            <th>Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for item in items %}
-        <tr>
-            <td>{{ item.description }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>${{ item.rate }}</td>
-            <td>${{ item.amount }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">No items found.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="invoice-header d-md-flex justify-content-between align-items-start">
+                <div>
+                    <div class="d-flex align-items-center mb-3">
+                        <div style="font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--primary-color);">
+                            LexPrudentia
+                        </div>
+                    </div>
+                    <div class="mb-1">123 Legal Avenue, Suite 500</div>
+                    <div class="mb-1">New York, NY 10001</div>
+                    <div class="mb-1">Phone: (555) 123-4567</div>
+                    <div>Email: billing@lexprudentia.com</div>
+                </div>
 
-<h3>Payments</h3>
-<a href="{% url 'billing:payment_create' invoice.id %}" class="btn btn-primary">Record Payment</a>
-<table class="table mt-3">
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Amount</th>
-            <th>Method</th>
-            <th>Transaction ID</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for payment in payments %}
-        <tr>
-            <td>{{ payment.payment_date }}</td>
-            <td>${{ payment.amount }}</td>
-            <td>{{ payment.payment_method }}</td>
-            <td>{{ payment.transaction_id|default_if_none:"-" }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">No payments recorded.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                <div class="text-md-end mt-4 mt-md-0">
+                    <div class="fs-4 fw-bold mb-2">Invoice #{{ invoice.invoice_number }}</div>
+                    <div class="mb-1">
+                        <span class="text-muted">Issue Date:</span>
+                        <span class="fw-medium">{{ invoice.issue_date|date:"F j, Y" }}</span>
+                    </div>
+                    <div class="mb-1">
+                        <span class="text-muted">Due Date:</span>
+                        <span class="fw-medium">{{ invoice.due_date|date:"F j, Y" }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="invoice-status
+                            {% if invoice.status == 'paid' %}status-paid
+                            {% elif invoice.status == 'overdue' %}status-overdue
+                            {% else %}status-pending{% endif %}">
+                            {{ invoice.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-<h3>Summary</h3>
-<p><strong>Subtotal:</strong> ${{ invoice.subtotal }}</p>
-<p><strong>Tax:</strong> ${{ invoice.tax }}</p>
-<p><strong>Total:</strong>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted mb-3">Bill To</h6>
+                    <div class="fw-bold fs-5 mb-2">{{ invoice.client.user.get_full_name }}</div>
+                    <div class="mb-1">{{ invoice.client.company_name }}</div>
+                    <div class="mb-1">{{ invoice.client.address|default:"" }}</div>
+                    <div>{{ invoice.client.user.email }}</div>
+                </div>
+
+                <div class="col-md-6">
+                    <h6 class="text-uppercase text-muted mb-3">Case Information</h6>
+                    <div class="fw-bold fs-5 mb-2">{{ invoice.case.title }}</div>
+                    <div class="mb-1">Case #: {{ invoice.case.case_number }}</div>
+                    <div>{{ invoice.case.get_case_type_display }}</div>
+                </div>
+            </div>
+
+            <div class="table-responsive mb-4">
+                <table class="table table-striped">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 50%;">Description</th>
+                            <th style="width: 15%;" class="text-center">Quantity</th>
+                            <th style="width: 15%;" class="text-end">Rate</th>
+                            <th style="width: 20%;" class="text-end">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td class="text-center">{{ item.quantity }}</td>
+                            <td class="text-end">${{ item.rate|floatformat:2 }}</td>
+                            <td class="text-end">${{ item.amount|floatformat:2 }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-4">
+                                <i class="fas fa-receipt fa-2x mb-2 text-muted"></i>
+                                <p class="text-muted mb-0">No items have been added to this invoice.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment History</h5>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Method</th>
+                                            <th class="text-end">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for payment in payments %}
+                                        <tr>
+                                            <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                                            <td>
+                                                <span class="payment-badge bg-light">
+                                                    {% if payment.payment_method == 'credit_card' %}
+                                                        <i class="fas fa-credit-card me-1"></i>
+                                                    {% elif payment.payment_method == 'bank_transfer' %}
+                                                        <i class="fas fa-university me-1"></i>
+                                                    {% elif payment.payment_method == 'check' %}
+                                                        <i class="fas fa-money-check me-1"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-money-bill-wave me-1"></i>
+                                                    {% endif %}
+                                                    {{ payment.get_payment_method_display }}
+                                                </span>
+                                            </td>
+                                            <td class="text-end">${{ payment.amount|floatformat:2 }}</td>
+                                        </tr>
+                                        {% empty %}
+                                        <tr>
+                                            <td colspan="3" class="text-center py-4">
+                                                <p class="text-muted mb-0">No payments recorded.</p>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="{% url 'billing:payment_create' invoice.id %}" class="btn btn-accent btn-sm">
+                                <i class="fas fa-plus-circle me-2"></i>Record Payment
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="invoice-summary">
+                        <div class="summary-row">
+                            <div>Subtotal</div>
+                            <div>${{ invoice.subtotal|floatformat:2 }}</div>
+                        </div>
+                        <div class="summary-row">
+                            <div>Tax ({{ invoice.tax_rate|floatformat:2 }}%)</div>
+                            <div>${{ invoice.tax|floatformat:2 }}</div>
+                        </div>
+                        {% if invoice.discount > 0 %}
+                        <div class="summary-row">
+                            <div>Discount</div>
+                            <div>-${{ invoice.discount|floatformat:2 }}</div>
+                        </div>
+                        {% endif %}
+                        <div class="summary-row summary-total">
+                            <div>Total</div>
+                            <div>${{ invoice.total|floatformat:2 }}</div>
+                        </div>
+
+                        {% if payments %}
+                        <div class="summary-row">
+                            <div>Paid</div>
+                            <div>${{ payments_total|floatformat:2 }}</div>
+                        </div>
+                        <div class="summary-row summary-total">
+                            <div>Balance Due</div>
+                            <div>${{ balance_due|floatformat:2 }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <a href="{% url 'billing:invoice_item_create' invoice.id %}" class="btn btn-primary">
+                            <i class="fas fa-plus-circle me-2"></i>Add Invoice Item
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Invoice
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if invoice.notes %}
+            <div class="mt-4">
+                <h6 class="text-uppercase text-muted mb-3">Notes</h6>
+                <div class="p-3 bg-light rounded">
+                    {{ invoice.notes|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="text-center mt-5 text-muted">
+                <p class="mb-1">Thank you for your business!</p>
+                <p class="small">Please include the invoice number with your payment.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

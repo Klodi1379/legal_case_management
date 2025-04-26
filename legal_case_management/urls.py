@@ -25,8 +25,8 @@ urlpatterns = [
     path('', include('core.urls')),
     path('', include('documents.urls')),
     path('billing/', include('billing.urls')),
-    
-    
+    path('ai/', include('ai_services.urls')),
+
 ]
 from django.conf import settings
 from django.conf.urls.static import static

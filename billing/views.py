@@ -76,6 +76,7 @@ def payment_create(request, invoice_id):
         if form.is_valid():
             payment = form.save(commit=False)
             payment.invoice = invoice
+            payment.received_by = request.user  # Set the received_by field to the current user
             payment.save()
             messages.success(request, 'Payment recorded successfully.')
             return redirect('billing:invoice_detail', invoice_id=invoice.id)

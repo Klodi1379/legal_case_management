@@ -1,0 +1,230 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}Analysis Result{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .result-container {
+        border-radius: 8px;
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        border-left: 4px solid var(--accent-color);
+    }
+
+    .analysis-metadata {
+        background-color: var(--light-bg);
+        border-radius: 8px;
+        padding: 1.5rem;
+    }
+
+    .metadata-item {
+        display: flex;
+        margin-bottom: 0.75rem;
+    }
+
+    .metadata-label {
+        width: 120px;
+        color: var(--secondary-color);
+        font-weight: 500;
+    }
+
+    .processing-time {
+        font-size: 0.9rem;
+        color: var(--secondary-color);
+    }
+
+    .key-point {
+        background-color: rgba(192, 160, 128, 0.1);
+        border-left: 3px solid var(--accent-color);
+        padding: 0.75rem 1rem;
+        margin-bottom: 0.75rem;
+        border-radius: 0 4px 4px 0;
+    }
+</style>
+{% endblock %}
+
+{% block ai_content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Analysis Result</h1>
+        <div class="btn-group">
+            <a href="#" class="btn btn-outline-primary" onclick="window.print();">
+                <i class="fas fa-print me-2"></i>Print
+            </a>
+            <a href="#" class="btn btn-outline-primary">
+                <i class="fas fa-download me-2"></i>Download
+            </a>
+            <a href="#" class="btn btn-outline-primary">
+                <i class="fas fa-share-alt me-2"></i>Share
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if analysis.analysis_type == 'summary' %}file-alt{% elif analysis.analysis_type == 'key_points' %}list{% elif analysis.analysis_type == 'legal_analysis' %}balance-scale{% else %}search{% endif %} me-2"></i>
+                        {{ analysis.get_analysis_type_display }}
+                    </h5>
+                    <span class="badge {% if analysis.status == 'completed' %}bg-success{% elif analysis.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
+                        {{ analysis.get_status_display }}
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% if analysis.status == 'completed' %}
+                        {% if analysis.analysis_type == 'key_points' %}
+                            <h6 class="fw-bold mb-3">Key Points Extracted</h6>
+                            <div class="mb-4">
+                                {% for point in key_points %}
+                                <div class="key-point">
+                                    {{ point }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="result-container">
+                                {{ analysis.result|linebreaks }}
+                            </div>
+                        {% endif %}
+
+                        <div class="text-end mt-3">
+                            <span class="processing-time">
+                                <i class="fas fa-clock me-1"></i>
+                                Processing time: {{ analysis.processing_time|floatformat:2 }} seconds
+                            </span>
+                        </div>
+                    {% elif analysis.status == 'processing' %}
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-accent mb-3" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="text-muted mb-0">Analysis in progress...</p>
+                            <p class="text-muted small">This may take a few moments depending on document size.</p>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            <strong>Error:</strong> {{ analysis.error_message }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'documents:document_detail' analysis.document.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Document
+                        </a>
+                        <a href="{% url 'ai_services:document_analysis' analysis.document.id %}" class="btn btn-accent">
+                            <i class="fas fa-robot me-2"></i>New Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if analysis.status == 'completed' and analysis.custom_instructions %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Custom Instructions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="p-3 bg-light rounded">
+                        {{ analysis.custom_instructions|linebreaks }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Document Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="me-3" style="color: var(--accent-color);">
+                            {% if analysis.document.file.name|lower|endswith:".pdf" %}
+                                <i class="fas fa-file-pdf fa-2x"></i>
+                            {% elif analysis.document.file.name|lower|endswith:".doc" or analysis.document.file.name|lower|endswith:".docx" %}
+                                <i class="fas fa-file-word fa-2x"></i>
+                            {% elif analysis.document.file.name|lower|endswith:".xls" or analysis.document.file.name|lower|endswith:".xlsx" %}
+                                <i class="fas fa-file-excel fa-2x"></i>
+                            {% else %}
+                                <i class="fas fa-file fa-2x"></i>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ analysis.document.title }}</h6>
+                            <p class="text-muted small mb-0">{{ analysis.document.file.size|filesizeformat }}</p>
+                        </div>
+                    </div>
+
+                    <div class="analysis-metadata">
+                        <div class="metadata-item">
+                            <div class="metadata-label">Document Type:</div>
+                            <div>{{ analysis.document.document_type|default:"General" }}</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-label">Uploaded By:</div>
+                            <div>{{ analysis.document.uploaded_by.get_full_name }}</div>
+                        </div>
+                        <div class="metadata-item">
+                            <div class="metadata-label">Upload Date:</div>
+                            <div>{{ analysis.document.uploaded_at|date:"M d, Y" }}</div>
+                        </div>
+                        {% if analysis.document.case %}
+                        <div class="metadata-item">
+                            <div class="metadata-label">Related Case:</div>
+                            <div>{{ analysis.document.case.title }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-grid mt-3">
+                        <a href="{{ analysis.document.file.url }}" class="btn btn-outline-primary" target="_blank">
+                            <i class="fas fa-eye me-2"></i>View Original Document
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Analysis Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="metadata-item">
+                        <div class="metadata-label">Analysis Type:</div>
+                        <div>{{ analysis.get_analysis_type_display }}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">AI Model:</div>
+                        <div>{{ analysis.model.name }}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Model Version:</div>
+                        <div>{{ analysis.model.model_type }}-{{ analysis.model.model_version }}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Requested By:</div>
+                        <div>{{ analysis.requested_by.get_full_name }}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Requested At:</div>
+                        <div>{{ analysis.created_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    {% if analysis.status == 'completed' %}
+                    <div class="metadata-item">
+                        <div class="metadata-label">Completed At:</div>
+                        <div>{{ analysis.completed_at|date:"M d, Y H:i" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

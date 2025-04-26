@@ -1,34 +1,219 @@
 <!-- documents/templates/documents/document_list.html -->
 {% extends "base.html" %}
 
+{% block title %}Documents - {{ case.title }}{% endblock %}
+
 {% block content %}
-<h2>Documents for Case: {{ case.title }}</h2>
-<a href="{% url 'documents:document_upload' case.id %}" class="btn btn-primary">Upload New Document</a>
-<table class="table mt-3">
-    <thead>
-        <tr>
-            <th>Title</th>
-            <th>Uploaded By</th>
-            <th>Uploaded At</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for document in documents %}
-        <tr>
-            <td>{{ document.title }}</td>
-            <td>{{ document.uploaded_by.get_full_name }}</td>
-            <td>{{ document.uploaded_at }}</td>
-            <td>
-                <a href="{{ document.file.url }}" class="btn btn-sm btn-info">Download</a>
-                <a href="{% url 'documents:document_delete' document.id %}" class="btn btn-sm btn-danger">Delete</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="4">No documents found.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="container">
+    <h1 class="page-title">Case Documents</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="d-flex align-items-center">
+                <div class="me-3" style="color: var(--primary-color);">
+                    <i class="fas fa-briefcase fa-2x"></i>
+                </div>
+                <div>
+                    <h5 class="mb-0">{{ case.title }}</h5>
+                    <p class="text-muted mb-0">{{ case.case_number }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'documents:document_upload' case.id %}" class="btn btn-primary">
+                <i class="fas fa-file-upload me-2"></i>Upload New Document
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Document Library</h5>
+            <div>
+                <div class="input-group">
+                    <input type="text" class="form-control" placeholder="Search documents..." id="documentSearch">
+                    <button class="btn btn-outline-secondary" type="button">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="documentsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th scope="col" style="width: 40%;">Document</th>
+                            <th scope="col" style="width: 15%;">Type</th>
+                            <th scope="col" style="width: 15%;">Uploaded By</th>
+                            <th scope="col" style="width: 15%;">Date</th>
+                            <th scope="col" style="width: 15%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for document in documents %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3" style="color: var(--accent-color);">
+                                        {% if document.file.name|lower|endswith:".pdf" %}
+                                            <i class="fas fa-file-pdf fa-lg"></i>
+                                        {% elif document.file.name|lower|endswith:".doc" or document.file.name|lower|endswith:".docx" %}
+                                            <i class="fas fa-file-word fa-lg"></i>
+                                        {% elif document.file.name|lower|endswith:".xls" or document.file.name|lower|endswith:".xlsx" %}
+                                            <i class="fas fa-file-excel fa-lg"></i>
+                                        {% elif document.file.name|lower|endswith:".jpg" or document.file.name|lower|endswith:".jpeg" or document.file.name|lower|endswith:".png" %}
+                                            <i class="fas fa-file-image fa-lg"></i>
+                                        {% else %}
+                                            <i class="fas fa-file fa-lg"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold">{{ document.title }}</div>
+                                        <div class="text-muted small">{{ document.file.size|filesizeformat }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>{{ document.document_type|default:"General" }}</td>
+                            <td>{{ document.uploaded_by.get_full_name }}</td>
+                            <td>{{ document.uploaded_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ document.file.url }}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Download">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Preview">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-sm btn-outline-accent" data-bs-toggle="tooltip" title="Analyze with AI">
+                                        <i class="fas fa-robot"></i>
+                                    </a>
+                                    <a href="{% url 'documents:document_delete' document.id %}" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <i class="fas fa-folder-open fa-3x mb-3 text-muted"></i>
+                                <p class="text-muted mb-0">No documents found for this case.</p>
+                                <p class="text-muted small">Upload a document to get started.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <div>
+                <span class="text-muted">Showing {{ documents|length }} document(s)</span>
+            </div>
+            <div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-filter me-1"></i>Filter
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-sort me-1"></i>Sort
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-robot me-2"></i>AI Document Tools</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Use AI to help manage and analyze case documents:</p>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-accent">
+                            <i class="fas fa-search me-2"></i>Legal Research
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-file-alt me-2"></i>Generate Document
+                        </a>
+                        {% if case %}
+                        <a href="#" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#batchAnalysisModal">
+                            <i class="fas fa-tasks me-2"></i>Batch Analyze Documents
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-signature me-2"></i>Document Templates</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Motion to Dismiss</div>
+                                <div class="text-muted small">Legal pleading template</div>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-outline-primary">Use</a>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Client Agreement</div>
+                                <div class="text-muted small">Contract template</div>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-outline-primary">Use</a>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Settlement Agreement</div>
+                                <div class="text-muted small">Legal document template</div>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-outline-primary">Use</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="#" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-plus-circle me-1"></i>View All Templates
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+
+        // Document search functionality
+        $("#documentSearch").on("keyup", function() {
+            var value = $(this).val().toLowerCase();
+            $("#documentsTable tbody tr").filter(function() {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+        });
+    });
+</script>
+{% endblock %}
 {% endblock %}

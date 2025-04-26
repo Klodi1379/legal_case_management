@@ -6,50 +6,228 @@
 {% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
-                    <h2 class="mb-0">Case Details: {{ case.title }}</h2>
+<div class="container">
+    <h1 class="page-title">Case Details</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>{{ case.title }}</h5>
+                    <span class="badge {% if case.status == 'open' %}bg-success{% elif case.status == 'closed' %}bg-secondary{% else %}bg-accent{% endif %}">
+                        {{ case.get_status_display }}
+                    </span>
                 </div>
                 <div class="card-body">
-                    <p><strong>Case Number:</strong> {{ case.case_number }}</p>
-                    <p><strong>Client:</strong> {{ case.client.user.get_full_name }}</p>
-                    <p><strong>Assigned Lawyer:</strong> {{ case.assigned_lawyer.get_full_name }}</p>
-                    <p><strong>Status:</strong> {{ case.get_status_display }}</p>
-                    <p><strong>Type:</strong> {{ case.get_case_type_display }}</p>
-                    <p><strong>Description:</strong> {{ case.description }}</p>
-                    <p><strong>Open Date:</strong> {{ case.open_date }}</p>
-                    {% if case.close_date %}
-                    <p><strong>Close Date:</strong> {{ case.close_date }}</p>
-                    {% endif %}
-                    <a href="{% url 'cases:case_update' case.id %}" class="btn btn-warning mt-3">Edit Case</a>
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-hashtag fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Case Number</div>
+                                    <div class="fw-bold">{{ case.case_number }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-user-tie fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Client</div>
+                                    <div class="fw-bold">{{ case.client.user.get_full_name }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-gavel fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Assigned Lawyer</div>
+                                    <div class="fw-bold">{{ case.assigned_lawyer.get_full_name }}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-tag fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Type</div>
+                                    <div class="fw-bold">{{ case.get_case_type_display }}</div>
+                                </div>
+                            </div>
+
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-calendar-plus fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Open Date</div>
+                                    <div class="fw-bold">{{ case.open_date }}</div>
+                                </div>
+                            </div>
+
+                            {% if case.close_date %}
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3" style="width: 40px; text-align: center; color: var(--primary-color);">
+                                    <i class="fas fa-calendar-check fa-lg"></i>
+                                </div>
+                                <div>
+                                    <div class="text-muted small">Close Date</div>
+                                    <div class="fw-bold">{{ case.close_date }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-align-left me-2"></i>Description</h6>
+                        <div class="p-3 bg-light rounded">
+                            {{ case.description|linebreaks }}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'cases:case_list' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left me-2"></i>Back to Cases
+                        </a>
+                        <a href="{% url 'cases:case_update' case.id %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>Edit Case
+                        </a>
+                    </div>
                 </div>
             </div>
 
-            <div class="card shadow mt-4">
-                <div class="card-header bg-secondary text-white">
-                    <h3 class="mb-0">Case Notes</h3>
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Case Notes</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" class="mb-4">
                         {% csrf_token %}
                         <div class="form-group mb-3">
                             {{ note_form.as_p }}
                         </div>
-                        <button type="submit" class="btn btn-success">Add Note</button>
+                        <button type="submit" class="btn btn-accent">
+                            <i class="fas fa-plus-circle me-2"></i>Add Note
+                        </button>
                     </form>
-                    <hr>
-                    <ul class="list-group">
+
+                    <div class="notes-timeline">
                         {% for note in notes %}
-                        <li class="list-group-item">
-                            <p>{{ note.content }}</p>
-                            <small>By {{ note.author.get_full_name }} on {{ note.created_at }}</small>
-                        </li>
+                        <div class="note-item mb-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar me-2" style="background-color: var(--accent-color); color: white; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                                {{ note.author.get_full_name|slice:":1" }}
+                                            </div>
+                                            <span class="fw-bold">{{ note.author.get_full_name }}</span>
+                                        </div>
+                                        <small class="text-muted">{{ note.created_at|date:"M d, Y H:i" }}</small>
+                                    </div>
+                                    <p class="mb-0">{{ note.content }}</p>
+                                </div>
+                            </div>
+                        </div>
                         {% empty %}
-                        <li class="list-group-item text-center">No notes yet.</li>
+                        <div class="text-center p-4 bg-light rounded">
+                            <i class="fas fa-comment-slash fa-2x mb-3" style="color: var(--accent-color);"></i>
+                            <p class="mb-0">No notes yet. Add the first note to this case.</p>
+                        </div>
                         {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Case Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'documents:document_upload' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-file-upload me-2"></i>Upload Document
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-plus me-2"></i>Schedule Event
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-clock me-2"></i>Log Time
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-file-invoice-dollar me-2"></i>Create Invoice
+                        </a>
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-envelope me-2"></i>Contact Client
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-robot me-2"></i>AI Assistance</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-3">Use AI to help with this case:</p>
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-accent">
+                            <i class="fas fa-search me-2"></i>Research Similar Cases
+                        </a>
+                        <a href="#" class="btn btn-accent">
+                            <i class="fas fa-file-alt me-2"></i>Summarize Documents
+                        </a>
+                        <a href="#" class="btn btn-accent">
+                            <i class="fas fa-gavel me-2"></i>Legal Analysis
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">Document uploaded</div>
+                                <div class="small text-muted">Today at 10:30 AM</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-comment"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">Note added</div>
+                                <div class="small text-muted">Yesterday at 2:15 PM</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold">Court date scheduled</div>
+                                <div class="small text-muted">Apr 22, 2025</div>
+                            </div>
+                        </li>
                     </ul>
                 </div>
             </div>

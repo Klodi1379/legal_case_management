@@ -1,0 +1,123 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}Prompt Templates{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'ai_services:prompt_create' %}" class="btn btn-sm btn-primary">
+    <i class="fas fa-plus me-1"></i> Add Template
+</a>
+{% endblock %}
+
+{% block ai_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-comment-dots me-2"></i>Prompt Template Management</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Task Type</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prompt in prompts %}
+                    <tr>
+                        <td>{{ prompt.name }}</td>
+                        <td>{{ prompt.get_task_type_display }}</td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 300px;" title="{{ prompt.description }}">
+                                {{ prompt.description|truncatechars:100 }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if prompt.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'ai_services:prompt_edit' prompt.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'ai_services:prompt_delete' prompt.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">No prompt templates configured yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About Prompt Templates</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Prompt templates define how the system communicates with AI models for different tasks.
+                    Well-designed prompts are crucial for getting high-quality results from the AI.
+                </p>
+                <h6 class="fw-bold mt-3">Template Components</h6>
+                <ul>
+                    <li><strong>System Prompt:</strong> Sets the context and role for the AI model</li>
+                    <li><strong>Prompt Template:</strong> The main template with placeholders for variables</li>
+                    <li><strong>Task Type:</strong> The specific legal task this prompt is designed for</li>
+                </ul>
+                <h6 class="fw-bold mt-3">Common Task Types</h6>
+                <ul>
+                    <li><strong>Document Summarization:</strong> Creating concise summaries of legal documents</li>
+                    <li><strong>Legal Analysis:</strong> In-depth analysis of legal issues and documents</li>
+                    <li><strong>Document Generation:</strong> Creating new legal documents from specifications</li>
+                    <li><strong>Legal Research:</strong> Researching legal questions and precedents</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Prompt Design Tips</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold">Effective System Prompts</h6>
+                <ul>
+                    <li>Define a clear role for the AI (e.g., "You are a legal assistant analyzing a contract")</li>
+                    <li>Specify the tone and style expected in the response</li>
+                    <li>Include any constraints or guidelines the AI should follow</li>
+                </ul>
+                <h6 class="fw-bold mt-3">Template Variables</h6>
+                <p>Use these placeholders in your templates:</p>
+                <ul>
+                    <li><code>{document_text}</code> - The content of the document being analyzed</li>
+                    <li><code>{query}</code> - The user's research query</li>
+                    <li><code>{case_id}</code> - The ID of the related case</li>
+                    <li><code>{custom_instructions}</code> - Any additional instructions from the user</li>
+                </ul>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Only one template should be marked as active for each task type to avoid conflicts.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

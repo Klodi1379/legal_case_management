@@ -1,0 +1,198 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}Document Generation{% endblock %}
+
+{% block ai_content %}
+<div class="container">
+    <h1 class="page-title">AI Document Generation</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Generate Document</h5>
+                </div>
+                <div class="card-body">
+                    <form id="documentForm" method="post">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="documentType" class="form-label">Document Type</label>
+                            <select class="form-select" id="documentType" name="document_type" required>
+                                <option value="" selected disabled>Select document type</option>
+                                <option value="letter">Letter</option>
+                                <option value="pleading">Pleading</option>
+                                <option value="contract">Contract</option>
+                                <option value="memo">Legal Memorandum</option>
+                                <option value="motion">Motion</option>
+                                <option value="brief">Brief</option>
+                                <option value="other">Other</option>
+                            </select>
+                            <div class="form-text">Select the type of document you want to generate</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="caseSelect" class="form-label">Related Case (Optional)</label>
+                            <select class="form-select" id="caseSelect" name="case">
+                                <option value="" selected>-- Select Case --</option>
+                                {% for case in cases %}
+                                <option value="{{ case.id }}">{{ case.title }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select a case to provide additional context</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="contentInput" class="form-label">Document Content</label>
+                            <textarea class="form-control" id="contentInput" name="content" rows="5" placeholder="Describe the content you want in the document..." required></textarea>
+                            <div class="form-text">Be specific about what you want included in the document</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-accent" id="submitBtn">
+                                <i class="fas fa-file-alt me-2"></i>Generate Document
+                                <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner" role="status" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            {% if generated_document %}
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Generated Document</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window.print();">
+                            <i class="fas fa-print me-1"></i>Print
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-download me-1"></i>Save as Word
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-file-pdf me-1"></i>Save as PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="generated-document p-4 bg-white border rounded">
+                        {{ generated_document.text|linebreaks }}
+                    </div>
+
+                    <div class="alert alert-info mt-4">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Note:</strong> This is an AI-generated draft. Please review and edit as needed before finalizing.
+                    </div>
+
+                    <div class="d-grid gap-2 mt-4">
+                        <button class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Save to Documents
+                        </button>
+                        <button class="btn btn-outline-secondary">
+                            <i class="fas fa-edit me-2"></i>Edit in Word Processor
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Document Tips</h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="fw-bold mb-2">Be Specific</h6>
+                    <p class="text-muted small mb-3">Include key details like parties involved, dates, and specific terms.</p>
+
+                    <h6 class="fw-bold mb-2">Provide Structure</h6>
+                    <p class="text-muted small mb-3">Outline the sections you want included in your document.</p>
+
+                    <h6 class="fw-bold mb-2">Include Legal Requirements</h6>
+                    <p class="text-muted small mb-3">Mention any specific legal clauses or language that must be included.</p>
+
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> Always review AI-generated documents for accuracy and completeness.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-signature me-2"></i>Document Templates</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Motion to Dismiss</div>
+                                <div class="text-muted small">Legal pleading template</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="useTemplate('motion_dismiss')">Use</button>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Client Agreement</div>
+                                <div class="text-muted small">Contract template</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="useTemplate('client_agreement')">Use</button>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Settlement Agreement</div>
+                                <div class="text-muted small">Legal document template</div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary" onclick="useTemplate('settlement')">Use</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const documentForm = document.getElementById('documentForm');
+        if (documentForm) {
+            documentForm.addEventListener('submit', function() {
+                const submitButton = document.getElementById('submitBtn');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+
+                submitButton.disabled = true;
+                loadingSpinner.classList.remove('d-none');
+            });
+        }
+    });
+
+    function useTemplate(templateId) {
+        // Set document type based on template
+        if (templateId === 'motion_dismiss') {
+            document.getElementById('documentType').value = 'motion';
+            document.getElementById('contentInput').value = 'Create a motion to dismiss based on [specify grounds]. The case involves [describe case briefly]. Include standard legal language for this jurisdiction and cite relevant precedents.';
+        } else if (templateId === 'client_agreement') {
+            document.getElementById('documentType').value = 'contract';
+            document.getElementById('contentInput').value = 'Create a client engagement agreement for legal services. Include sections on scope of representation, fees and billing, client responsibilities, termination, and confidentiality.';
+        } else if (templateId === 'settlement') {
+            document.getElementById('documentType').value = 'contract';
+            document.getElementById('contentInput').value = 'Create a settlement agreement between [party A] and [party B]. The dispute involves [describe dispute]. Include terms for payment, release of claims, confidentiality, and non-admission of liability.';
+        }
+    }
+</script>
+{% endblock %}

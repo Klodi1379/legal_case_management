@@ -1,0 +1,171 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}Document Analysis{% endblock %}
+
+{% block ai_content %}
+<div class="container">
+    <h1 class="page-title">AI Document Analysis</h1>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>{{ document.title }}</h5>
+                    <span class="badge bg-accent">{{ document.document_type|default:"Document" }}</span>
+                </div>
+                <div class="card-body">
+                    <form id="analysisForm" method="post" action="{% url 'ai_services:submit_analysis' document.id %}">
+                        {% csrf_token %}
+
+                        <div class="mb-4">
+                            <label for="analysisType" class="form-label">Analysis Type</label>
+                            <select class="form-select" id="analysisType" name="analysis_type" required>
+                                <option value="" selected disabled>Select analysis type</option>
+                                <option value="summary">Document Summary</option>
+                                <option value="key_points">Extract Key Points</option>
+                                <option value="legal_analysis">Legal Analysis</option>
+                                <option value="precedent_search">Find Relevant Precedents</option>
+                            </select>
+                            <div class="form-text">Select the type of analysis to perform on this document</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="modelSelect" class="form-label">AI Model</label>
+                            <select class="form-select" id="modelSelect" name="model_id" required>
+                                <option value="" selected disabled>Select AI model</option>
+                                {% for model in models %}
+                                <option value="{{ model.id }}">{{ model.name }} ({{ model.model_type }}-{{ model.model_version }})</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Select the AI model to use for analysis</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="customInstructions" class="form-label">Custom Instructions (Optional)</label>
+                            <textarea class="form-control" id="customInstructions" name="custom_instructions" rows="3" placeholder="Add any specific instructions for the analysis..."></textarea>
+                            <div class="form-text">Provide additional context or specific questions</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-accent" id="submitBtn">
+                                <i class="fas fa-robot me-2"></i>Start Analysis
+                                <span class="spinner-border spinner-border-sm d-none" id="loadingSpinner" role="status" aria-hidden="true"></span>
+                            </button>
+                            <a href="{{ document.file.url }}" class="btn btn-outline-primary" target="_blank">
+                                <i class="fas fa-eye me-2"></i>View Document
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About AI Document Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">Document Summary</h6>
+                            <p>Generates a concise summary of the document's content, highlighting the most important information.</p>
+
+                            <h6 class="fw-bold mb-3 mt-4">Extract Key Points</h6>
+                            <p>Identifies and extracts the key points, facts, dates, and entities from the document.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">Legal Analysis</h6>
+                            <p>Provides a legal analysis of the document, identifying potential issues, strengths, and weaknesses.</p>
+
+                            <h6 class="fw-bold mb-3 mt-4">Find Relevant Precedents</h6>
+                            <p>Searches for relevant legal precedents and cases that may be applicable to this document.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> For best results, use custom instructions to specify exactly what you're looking for in the document.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Previous Analyses</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for analysis in previous_analyses %}
+                        <li class="list-group-item">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="fw-bold">{{ analysis.get_analysis_type_display }}</span>
+                                <span class="badge {% if analysis.status == 'completed' %}bg-success{% elif analysis.status == 'failed' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ analysis.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <small class="text-muted">{{ analysis.created_at|date:"M d, Y H:i" }}</small>
+                                <a href="{% url 'ai_services:analysis_result' analysis.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>View
+                                </a>
+                            </div>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item text-center py-4">
+                            <i class="fas fa-robot fa-2x mb-2 text-muted"></i>
+                            <p class="text-muted mb-0">No previous analyses found.</p>
+                            <p class="text-muted small">Start your first analysis now!</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-brain me-2"></i>AI Model Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="fw-bold">Gemma 3</h6>
+                        <p class="text-muted mb-2">Google's state-of-the-art open-source language model.</p>
+                        <div class="d-flex align-items-center mb-1">
+                            <div class="me-2" style="width: 100px;">Strengths:</div>
+                            <div class="text-muted small">Legal reasoning, document understanding, factual accuracy</div>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <div class="me-2" style="width: 100px;">Best for:</div>
+                            <div class="text-muted small">Document summaries, legal analysis, fact extraction</div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Note:</strong> AI analysis is provided as assistance only and should be reviewed by a legal professional.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const analysisForm = document.getElementById('analysisForm');
+        if (analysisForm) {
+            analysisForm.addEventListener('submit', function() {
+                const submitButton = document.getElementById('submitBtn');
+                const loadingSpinner = document.getElementById('loadingSpinner');
+
+                submitButton.disabled = true;
+                loadingSpinner.classList.remove('d-none');
+            });
+        }
+    });
+</script>
+{% endblock %}

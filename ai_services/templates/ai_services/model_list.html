@@ -1,0 +1,132 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}LLM Models{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'ai_services:model_create' %}" class="btn btn-sm btn-primary">
+    <i class="fas fa-plus me-1"></i> Add Model
+</a>
+{% endblock %}
+
+{% block ai_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-brain me-2"></i>LLM Model Management</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Version</th>
+                        <th>Deployment</th>
+                        <th>Endpoint</th>
+                        <th>Parameters</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for model in models %}
+                    <tr>
+                        <td>{{ model.name }}</td>
+                        <td>{{ model.get_model_type_display }}</td>
+                        <td>{{ model.model_version }}</td>
+                        <td>{{ model.get_deployment_type_display }}</td>
+                        <td>
+                            <span class="text-truncate d-inline-block" style="max-width: 200px;" title="{{ model.endpoint_url }}">
+                                {{ model.endpoint_url }}
+                            </span>
+                        </td>
+                        <td>
+                            <small>
+                                <span class="badge bg-secondary">Max: {{ model.max_tokens }}</span>
+                                <span class="badge bg-secondary">Temp: {{ model.temperature }}</span>
+                            </small>
+                        </td>
+                        <td>
+                            {% if model.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'ai_services:model_edit' model.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'ai_services:model_delete' model.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">No models configured yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About LLM Models</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Large Language Models (LLMs) are the AI engines that power the system's document analysis,
+                    legal research, and generation capabilities. This system is designed to work with
+                    Gemma 3 and other open-source models.
+                </p>
+                <h6 class="fw-bold mt-3">Model Types</h6>
+                <ul>
+                    <li><strong>Gemma 3:</strong> Google's state-of-the-art open-source model</li>
+                    <li><strong>Llama 3:</strong> Meta's powerful open-source model</li>
+                    <li><strong>Mistral:</strong> Efficient and powerful open-source model</li>
+                </ul>
+                <h6 class="fw-bold mt-3">Deployment Types</h6>
+                <ul>
+                    <li><strong>Local:</strong> Running on local hardware</li>
+                    <li><strong>Containerized:</strong> Running in Docker containers</li>
+                    <li><strong>API:</strong> Accessed via external API</li>
+                    <li><strong>vLLM:</strong> Optimized deployment using vLLM</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Configuration Tips</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold">Endpoint URL Format</h6>
+                <ul>
+                    <li><strong>Local:</strong> http://localhost:port/v1/completions</li>
+                    <li><strong>LM Studio:</strong> http://localhost:1234/v1/completions</li>
+                    <li><strong>Ollama:</strong> http://localhost:11434/api/generate</li>
+                </ul>
+                <h6 class="fw-bold mt-3">Parameter Recommendations</h6>
+                <ul>
+                    <li><strong>Max Tokens:</strong> 2048-4096 for most tasks</li>
+                    <li><strong>Temperature:</strong> 0.1-0.3 for factual tasks, 0.7-0.9 for creative tasks</li>
+                </ul>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Only one model should be marked as active for each model type to avoid conflicts.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

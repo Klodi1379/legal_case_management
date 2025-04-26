@@ -1,0 +1,121 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'ai_services:model_list' %}" class="btn btn-sm btn-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back to Models
+</a>
+{% endblock %}
+
+{% block ai_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            {% if model %}
+            <i class="fas fa-edit me-2"></i>Edit Model: {{ model.name }}
+            {% else %}
+            <i class="fas fa-plus me-2"></i>Create New Model
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">Model Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.model_type.id_for_label }}" class="form-label">Model Type</label>
+                    {{ form.model_type }}
+                    {% if form.model_type.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.model_type.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.model_version.id_for_label }}" class="form-label">Version</label>
+                    {{ form.model_version }}
+                    {% if form.model_version.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.model_version.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="{{ form.deployment_type.id_for_label }}" class="form-label">Deployment Type</label>
+                    {{ form.deployment_type }}
+                    {% if form.deployment_type.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.deployment_type.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-9">
+                    <label for="{{ form.endpoint_url.id_for_label }}" class="form-label">Endpoint URL</label>
+                    {{ form.endpoint_url }}
+                    {% if form.endpoint_url.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.endpoint_url.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <label for="{{ form.max_tokens.id_for_label }}" class="form-label">Max Tokens</label>
+                    {{ form.max_tokens }}
+                    {% if form.max_tokens.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.max_tokens.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <label for="{{ form.temperature.id_for_label }}" class="form-label">Temperature</label>
+                    {{ form.temperature }}
+                    {% if form.temperature.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.temperature.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 d-flex align-items-end">
+                    <div class="form-check form-switch">
+                        {{ form.is_active }}
+                        <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                            Active Model
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Note:</strong> For local deployments with LM Studio, use endpoint URL format: <code>http://localhost:1234/v1/completions</code>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'ai_services:model_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {% if model %}Update{% else %}Create{% endif %} Model
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

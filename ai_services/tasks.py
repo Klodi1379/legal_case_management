@@ -1,7 +1,8 @@
 import logging
 from celery import shared_task
 from django.utils import timezone
-from .models import AIAnalysisRequest, Document, VectorStore
+from .models import AIAnalysisRequest, VectorStore, DocumentEmbedding
+from documents.models import Document
 # Use the service factory to get appropriate services
 from .services.service_factory import AIServiceFactory
 
@@ -16,15 +17,15 @@ def process_analysis_request(request_id: int):
         request_id: ID of the AIAnalysisRequest to process
     """
     logger.info(f"Processing analysis request {request_id}")
-    
+
     try:
         # Get the analysis request
         analysis_request = AIAnalysisRequest.objects.get(id=request_id)
         model = analysis_request.llm_model
-        
+
         # Get the appropriate service with fallback capability
         service_class = AIServiceFactory.get_llm_service(model)
-        
+
         # Process the request
         return service_class.process_analysis_request(request_id)
     except Exception as e:
@@ -66,7 +67,8 @@ def batch_process_documents(case_id: int = None):
     """
     logger.info(f"Batch processing documents for case {case_id if case_id else 'all'}")
 
-    from .models import Document, VectorStore, DocumentEmbedding
+    # These imports are already at the top of the file
+    # Just using the already imported models
 
     # Get documents without embeddings
     query = Document.objects.exclude(id__in=DocumentEmbedding.objects.values_list('document_id', flat=True))

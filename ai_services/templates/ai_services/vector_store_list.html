@@ -1,0 +1,120 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}Vector Stores{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'ai_services:vector_store_create' %}" class="btn btn-sm btn-primary">
+    <i class="fas fa-plus me-1"></i> Add Vector Store
+</a>
+{% endblock %}
+
+{% block ai_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-database me-2"></i>Vector Store Management</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Store Type</th>
+                        <th>Embedding Model</th>
+                        <th>Dimensions</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for store in stores %}
+                    <tr>
+                        <td>{{ store.name }}</td>
+                        <td>{{ store.get_store_type_display }}</td>
+                        <td>{{ store.embedding_model }}</td>
+                        <td>{{ store.dimensions }}</td>
+                        <td>
+                            {% if store.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'ai_services:vector_store_edit' store.id %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'ai_services:vector_store_delete' store.id %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">No vector stores configured yet</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>About Vector Stores</h5>
+            </div>
+            <div class="card-body">
+                <p>
+                    Vector stores are databases that store document embeddings for semantic search and retrieval.
+                    They enable natural language search across your legal documents.
+                </p>
+                <h6 class="fw-bold mt-3">Store Types</h6>
+                <ul>
+                    <li><strong>PostgreSQL:</strong> Uses pgvector extension for PostgreSQL</li>
+                    <li><strong>ChromaDB:</strong> Open-source embedding database</li>
+                    <li><strong>Pinecone:</strong> Cloud-based vector database</li>
+                    <li><strong>Weaviate:</strong> Knowledge graph with vector search</li>
+                </ul>
+                <h6 class="fw-bold mt-3">Common Embedding Models</h6>
+                <ul>
+                    <li><strong>all-MiniLM-L6-v2:</strong> Efficient, general-purpose embeddings</li>
+                    <li><strong>text-embedding-ada-002:</strong> OpenAI's embedding model</li>
+                    <li><strong>e5-large-v2:</strong> High-quality embeddings for search</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Configuration Tips</h5>
+            </div>
+            <div class="card-body">
+                <h6 class="fw-bold">Connection String Format</h6>
+                <ul>
+                    <li><strong>PostgreSQL:</strong> <code>postgresql://user:password@localhost:5432/dbname</code></li>
+                    <li><strong>ChromaDB:</strong> <code>chroma:///path/to/chroma/directory</code></li>
+                    <li><strong>Pinecone:</strong> <code>pinecone://api-key@environment/index-name</code></li>
+                </ul>
+                <h6 class="fw-bold mt-3">Dimensions by Model</h6>
+                <ul>
+                    <li><strong>all-MiniLM-L6-v2:</strong> 384 dimensions</li>
+                    <li><strong>text-embedding-ada-002:</strong> 1536 dimensions</li>
+                    <li><strong>e5-large-v2:</strong> 1024 dimensions</li>
+                </ul>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    <strong>Tip:</strong> Only one vector store should be marked as active to avoid conflicts.
+                    Make sure the dimensions match your embedding model.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

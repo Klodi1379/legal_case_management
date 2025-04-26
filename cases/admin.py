@@ -8,7 +8,7 @@ class CaseNoteInline(admin.TabularInline):
 
 @admin.register(Case)
 class CaseAdmin(admin.ModelAdmin):
-    list_display = ('title', 'case_number', 'client', 'assigned_lawyer', 'status', 'case_type', 'open_date')
+    list_display = ('title', 'case_number', 'client', 'assigned_attorney', 'status', 'case_type', 'open_date')
     list_filter = ('status', 'case_type', 'open_date')
-    search_fields = ('title', 'case_number', 'client__user__username', 'assigned_lawyer__username')
+    search_fields = ('title', 'case_number', 'client__user__username', 'assigned_attorney__username')
     inlines = [CaseNoteInline]

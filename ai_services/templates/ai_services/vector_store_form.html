@@ -1,0 +1,139 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'ai_services:vector_store_list' %}" class="btn btn-sm btn-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back to Vector Stores
+</a>
+{% endblock %}
+
+{% block ai_content %}
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">
+            {% if store %}
+            <i class="fas fa-edit me-2"></i>Edit Vector Store: {{ store.name }}
+            {% else %}
+            <i class="fas fa-plus me-2"></i>Create New Vector Store
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">Store Name</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.name.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.store_type.id_for_label }}" class="form-label">Store Type</label>
+                    {{ form.store_type }}
+                    {% if form.store_type.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.store_type.errors }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.connection_string.id_for_label }}" class="form-label">Connection String</label>
+                {{ form.connection_string }}
+                {% if form.connection_string.errors %}
+                <div class="invalid-feedback d-block">
+                    {{ form.connection_string.errors }}
+                </div>
+                {% endif %}
+                <div class="form-text">Connection string for the vector database.</div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="{{ form.embedding_model.id_for_label }}" class="form-label">Embedding Model</label>
+                    {{ form.embedding_model }}
+                    {% if form.embedding_model.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.embedding_model.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-text">The model used to generate embeddings.</div>
+                </div>
+                <div class="col-md-6">
+                    <label for="{{ form.dimensions.id_for_label }}" class="form-label">Dimensions</label>
+                    {{ form.dimensions }}
+                    {% if form.dimensions.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ form.dimensions.errors }}
+                    </div>
+                    {% endif %}
+                    <div class="form-text">Number of dimensions in the embedding vectors.</div>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <div class="form-check form-switch">
+                    {{ form.is_active }}
+                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                        Active Vector Store
+                    </label>
+                </div>
+                <div class="form-text">Only one vector store should be active at a time.</div>
+            </div>
+
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Note:</strong> Make sure the dimensions match your embedding model. Common values are:
+                <ul class="mb-0">
+                    <li>all-MiniLM-L6-v2: 384 dimensions</li>
+                    <li>text-embedding-ada-002: 1536 dimensions</li>
+                    <li>e5-large-v2: 1024 dimensions</li>
+                </ul>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                <a href="{% url 'ai_services:vector_store_list' %}" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    {% if store %}Update{% else %}Create{% endif %} Vector Store
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Connection String Examples</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold">PostgreSQL with pgvector</h6>
+                <pre class="bg-light p-2 rounded">postgresql://username:password@localhost:5432/legal_db</pre>
+                <p class="text-muted small">Make sure the pgvector extension is installed in your PostgreSQL database.</p>
+
+                <h6 class="fw-bold mt-3">ChromaDB</h6>
+                <pre class="bg-light p-2 rounded">chroma:///path/to/chroma/directory</pre>
+                <p class="text-muted small">Local directory where ChromaDB will store its data.</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">Pinecone</h6>
+                <pre class="bg-light p-2 rounded">pinecone://api-key@environment/index-name</pre>
+                <p class="text-muted small">Replace api-key, environment, and index-name with your Pinecone credentials.</p>
+
+                <h6 class="fw-bold mt-3">Weaviate</h6>
+                <pre class="bg-light p-2 rounded">weaviate://api-key@cluster-url/class-name</pre>
+                <p class="text-muted small">Replace api-key, cluster-url, and class-name with your Weaviate credentials.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
