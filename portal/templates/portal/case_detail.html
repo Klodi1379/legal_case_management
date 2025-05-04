@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Case: {{ case.title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">{{ case.title }}</h1>
+            <p class="text-muted">Case #{{ case.case_number }}</p>
+        </div>
+        <a href="{% url 'portal:cases' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Cases
+        </a>
+    </div>
+
+    <!-- Case Status Card -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Case Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <strong>Status:</strong>
+                                </div>
+                                <div class="col-md-8">
+                                    {% if case.status == 'OPEN' %}
+                                        <span class="badge bg-success">Active</span>
+                                    {% elif case.status == 'CLOSED' %}
+                                        <span class="badge bg-secondary">Closed</span>
+                                    {% elif case.status == 'PENDING' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% else %}
+                                        <span class="badge bg-info">{{ case.status }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <strong>Practice Area:</strong>
+                                </div>
+                                <div class="col-md-8">
+                                    {{ case.practice_area.name }}
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <strong>Opened:</strong>
+                                </div>
+                                <div class="col-md-8">
+                                    {{ case.open_date|date:"F j, Y" }}
+                                </div>
+                            </div>
+                            {% if case.close_date %}
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <strong>Closed:</strong>
+                                </div>
+                                <div class="col-md-8">
+                                    {{ case.close_date|date:"F j, Y" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <strong>Description:</strong>
+                                </div>
+                                <div class="col-md-8">
+                                    {{ case.description|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Case Team</h6>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        {% for member in case.team_members.all %}
+                                            <li class="mb-2">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2">
+                                                        <i class="fas fa-user-circle text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div>{{ member.user.get_full_name }}</div>
+                                                        <small class="text-muted">{{ member.get_role_display }}</small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        {% empty %}
+                                            <li>No team members assigned yet.</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Documents Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Case Documents</h5>
+                </div>
+                <div class="card-body">
+                    {% if documents %}
+                        <div class="list-group">
+                            {% for doc in documents %}
+                                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">{{ doc.title }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i> {{ doc.uploaded_at|date:"M d, Y" }} | 
+                                            <i class="fas fa-file me-1"></i> {{ doc.get_document_type_display }}
+                                        </small>
+                                    </div>
+                                    <div>
+                                        <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                            <i class="fas fa-download me-1"></i> Download
+                                        </a>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No documents available for this case.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tasks Section -->
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Tasks</h5>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <div class="list-group">
+                            {% for task in tasks %}
+                                <div class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ task.title }}</h6>
+                                        <small class="{% if task.is_overdue %}text-danger{% endif %}">
+                                            Due: {{ task.due_date|date:"M d, Y" }}
+                                        </small>
+                                    </div>
+                                    <p class="mb-1">{{ task.description|truncatechars:100 }}</p>
+                                    <div class="mt-2">
+                                        <span class="badge {% if task.status == 'PENDING' %}bg-warning{% elif task.status == 'IN_PROGRESS' %}bg-info{% else %}bg-success{% endif %}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                        <small class="text-muted ms-2">Assigned to: {{ task.assigned_to.get_full_name }}</small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No tasks for this case.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Messages Section -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Case Messages</h5>
+                    <a href="{% url 'portal:create_message' %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus-circle me-2"></i>New Message
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if message_threads %}
+                        <div class="list-group">
+                            {% for thread in message_threads %}
+                                <a href="{% url 'portal:message_thread' thread.id %}" class="list-group-item list-group-item-action {% if thread.unread > 0 %}list-group-item-primary{% endif %}">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ thread.subject }}</h6>
+                                        <small>{{ thread.updated_at|timesince }} ago</small>
+                                    </div>
+                                    {% if thread.unread > 0 %}
+                                        <span class="badge bg-danger">{{ thread.unread }} new</span>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        Started by: {{ thread.created_by.get_full_name }}
+                                    </small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No message threads for this case.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

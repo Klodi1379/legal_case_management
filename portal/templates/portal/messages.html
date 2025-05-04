@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+
+{% block title %}Secure Messages{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">Secure Messages</h1>
+            <p class="text-muted">Communicate securely with your legal team</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                <i class="fas fa-plus-circle me-2"></i>New Message
+            </button>
+            <a href="{% url 'portal:dashboard' %}" class="btn btn-outline-primary ms-2">
+                <i class="fas fa-tachometer-alt me-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    {% if message_threads %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead style="background-color: var(--primary-color); color: white;">
+                                    <tr>
+                                        <th>Subject</th>
+                                        <th>Case</th>
+                                        <th>Last Updated</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for thread in message_threads %}
+                                        <tr class="{% if thread.unread > 0 %}table-primary{% endif %}">
+                                            <td>
+                                                {{ thread.subject }}
+                                                {% if thread.unread > 0 %}
+                                                    <span class="badge bg-danger ms-2">{{ thread.unread }} new</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if thread.case %}
+                                                    <a href="{% url 'portal:case_detail' thread.case.id %}">
+                                                        {{ thread.case.title }}
+                                                    </a>
+                                                {% else %}
+                                                    <span class="text-muted">General</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ thread.updated_at|date:"M d, Y" }} ({{ thread.updated_at|timesince }} ago)</td>
+                                            <td>
+                                                {% if thread.is_closed %}
+                                                    <span class="badge bg-secondary">Closed</span>
+                                                {% else %}
+                                                    <span class="badge bg-success">Active</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{% url 'portal:message_thread' thread.id %}" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i> You don't have any message threads yet.
+                            <div class="mt-3">
+                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newMessageModal">
+                                    <i class="fas fa-plus-circle me-2"></i>Start a Conversation
+                                </button>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Secure Messaging Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lock me-2"></i>Security</h6>
+                            <p>All messages are encrypted and can only be accessed by you and your legal team. This ensures your communications remain confidential and protected.</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-bell me-2"></i>Notifications</h6>
+                            <p>You'll receive notifications when you get new messages. Check your dashboard regularly for updates or enable email notifications in your profile settings.</p>
+                        </div>
+                    </div>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i> For urgent matters, please contact your attorney directly by phone.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Message Modal -->
+<div class="modal fade" id="newMessageModal" tabindex="-1" aria-labelledby="newMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="newMessageModalLabel">New Message</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="{{ form.subject.id_for_label }}" class="form-label">Subject</label>
+                        {{ form.subject }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.case.id_for_label }}" class="form-label">Related Case (Optional)</label>
+                        {{ form.case }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="{{ form.message.id_for_label }}" class="form-label">Message</label>
+                        {{ form.message }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Send Message</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

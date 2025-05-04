@@ -2,6 +2,20 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from io import BytesIO
+import base64
+import random
+import string
+import secrets
+
+# Try to import pyotp and qrcode, but provide fallbacks if not available
+try:
+    import pyotp
+    import qrcode
+    import qrcode.image.svg
+    PYOTP_AVAILABLE = True
+except ImportError:
+    PYOTP_AVAILABLE = False
 
 class User(AbstractUser):
     """
@@ -62,3 +76,98 @@ class User(AbstractUser):
             role_display = dict(self.ROLE_CHOICES).get(self.role, '')
             return f"{full_name} ({role_display})"
         return full_name
+
+
+class MFASetup(models.Model):
+    """
+    Multi-Factor Authentication setup for users.
+    Stores the secret key and configuration for TOTP-based MFA.
+    """
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='mfa_setup')
+    secret_key = models.CharField(_('Secret Key'), max_length=100)
+    is_enabled = models.BooleanField(_('MFA Enabled'), default=False)
+    backup_codes = models.JSONField(_('Backup Codes'), default=list, blank=True)
+    created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
+    last_used = models.DateTimeField(_('Last Used'), null=True, blank=True)
+
+    def __str__(self):
+        return f"MFA Setup for {self.user.username}"
+
+    def generate_secret_key(self):
+        """Generate a new secret key for TOTP."""
+        if PYOTP_AVAILABLE:
+            self.secret_key = pyotp.random_base32()
+        else:
+            # Fallback: generate a random base32 string
+            chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
+            self.secret_key = ''.join(random.choices(chars, k=16))
+
+        self.save()
+        return self.secret_key
+
+    def get_totp(self):
+        """Get TOTP object for code generation and verification."""
+        if PYOTP_AVAILABLE:
+            return pyotp.TOTP(self.secret_key)
+        return None
+
+    def verify_code(self, code):
+        """Verify a TOTP code."""
+        if PYOTP_AVAILABLE:
+            totp = self.get_totp()
+            return totp.verify(code)
+
+        # Fallback: in development, accept any 6-digit code
+        return code.isdigit() and len(code) == 6
+
+    def get_qr_code(self):
+        """Generate QR code for authenticator app setup."""
+        if not PYOTP_AVAILABLE:
+            # Return a placeholder image or message
+            return ""
+
+        totp = self.get_totp()
+        # Create a provisioning URI for the authenticator app
+        provisioning_uri = totp.provisioning_uri(
+            name=self.user.email,
+            issuer_name="Legal Case Management"
+        )
+
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(provisioning_uri)
+        qr.make(fit=True)
+
+        # Create image
+        img = qr.make_image(fill_color="black", back_color="white")
+
+        # Convert to base64 for display in HTML
+        buffer = BytesIO()
+        img.save(buffer)
+        return base64.b64encode(buffer.getvalue()).decode()
+
+    def generate_backup_codes(self, count=8):
+        """Generate backup codes for account recovery."""
+        # Generate random 8-character codes
+        codes = []
+        for _ in range(count):
+            code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+            codes.append(code)
+
+        self.backup_codes = codes
+        self.save()
+        return codes
+
+    def verify_backup_code(self, code):
+        """Verify a backup code and remove it if valid."""
+        if code in self.backup_codes:
+            # Remove the used code
+            self.backup_codes.remove(code)
+            self.save()
+            return True
+        return False

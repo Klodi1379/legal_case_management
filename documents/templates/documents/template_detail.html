@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% load document_extras %}
+
+{% block title %}{{ template.name }} - Template Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Template Details</h1>
+        <div>
+            <a href="{% url 'documents:template_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Templates
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        {% if file_ext == '.docx' or file_ext == '.doc' %}
+                            <i class="fas fa-file-word me-2" style="color: var(--accent-color);"></i>
+                        {% elif file_ext == '.pdf' %}
+                            <i class="fas fa-file-pdf me-2" style="color: var(--accent-color);"></i>
+                        {% elif file_ext == '.txt' %}
+                            <i class="fas fa-file-alt me-2" style="color: var(--accent-color);"></i>
+                        {% else %}
+                            <i class="fas fa-file me-2" style="color: var(--accent-color);"></i>
+                        {% endif %}
+                        {{ template.name }}
+                    </h5>
+                    <span class="badge bg-accent">{{ template.get_document_type_display }}</span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Description</h6>
+                        <p>{{ template.description|default:"No description provided." }}</p>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">Template Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th style="width: 40%;">Document Type:</th>
+                                    <td>{{ template.get_document_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Created By:</th>
+                                    <td>{{ template.created_by.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Created On:</th>
+                                    <td>{{ template.created_at|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Last Updated:</th>
+                                    <td>{{ template.updated_at|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status:</th>
+                                    <td>
+                                        {% if template.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted mb-2">File Information</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <th style="width: 40%;">File Name:</th>
+                                    <td>{{ template.file.name|split:"/" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>File Type:</th>
+                                    <td>{{ file_ext|upper|default:"Unknown" }}</td>
+                                </tr>
+                                <tr>
+                                    <th>File Size:</th>
+                                    <td>{{ template.file.size|filesizeformat }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <a href="{% url 'documents:template_download' template.id %}" class="btn btn-primary">
+                                <i class="fas fa-download me-2"></i>Download Template
+                            </a>
+                            {% if request.user == template.created_by or request.user.is_staff %}
+                                <a href="{% url 'documents:template_delete' template.id %}" class="btn btn-outline-danger ms-2">
+                                    <i class="fas fa-trash me-2"></i>Delete Template
+                                </a>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'ai_services:document_generation' %}" class="btn btn-accent">
+                            <i class="fas fa-magic me-2"></i>Use with AI Generator
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            {% if file_ext == '.pdf' %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-eye me-2"></i>Preview</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="ratio ratio-16x9">
+                            <iframe src="{{ template.file.url }}" allowfullscreen></iframe>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-magic me-2"></i>Template Usage</h5>
+                </div>
+                <div class="card-body">
+                    <p>This template can be used in several ways:</p>
+
+                    <div class="mb-3">
+                        <h6><i class="fas fa-download me-2"></i>Direct Download</h6>
+                        <p class="text-muted small">Download the template file and use it in your preferred word processor.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6><i class="fas fa-robot me-2"></i>AI Document Generation</h6>
+                        <p class="text-muted small">Use our AI to automatically generate content based on this template.</p>
+                        <a href="{% url 'ai_services:document_generation' %}" class="btn btn-sm btn-outline-primary">
+                            Go to AI Generator
+                        </a>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6><i class="fas fa-share-alt me-2"></i>Share with Team</h6>
+                        <p class="text-muted small">This template is available to all team members with access to the system.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Similar Templates</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <!-- This would ideally be populated with actual similar templates -->
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Motion to Dismiss</div>
+                                <div class="text-muted small">Legal pleading template</div>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                        </li>
+                        <li class="list-group-item d-flex align-items-center py-3">
+                            <div class="me-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-word fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold">Client Agreement</div>
+                                <div class="text-muted small">Contract template</div>
+                            </div>
+                            <a href="#" class="btn btn-sm btn-outline-primary">View</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -255,3 +255,123 @@ class CaseEvent(models.Model):
         verbose_name = _('Case Event')
         verbose_name_plural = _('Case Events')
         ordering = ['date', 'time']
+
+
+class ConflictCheck(models.Model):
+    """
+    Automated conflict of interest checking.
+
+    Tracks conflict checks performed for cases to ensure ethical compliance
+    and avoid potential conflicts of interest.
+    """
+    RESOLUTION_CHOICES = [
+        ('NO_CONFLICT', 'No Conflict Found'),
+        ('POTENTIAL_CONFLICT', 'Potential Conflict Identified'),
+        ('CONFLICT_WAIVED', 'Conflict Waived'),
+        ('CONFLICT_UNRESOLVED', 'Conflict Unresolved'),
+        ('DECLINED', 'Representation Declined Due to Conflict'),
+    ]
+
+    SOURCE_CHOICES = [
+        ('AUTOMATED', 'Automated Check'),
+        ('MANUAL', 'Manual Check'),
+        ('CLIENT_DISCLOSURE', 'Client Disclosure'),
+        ('THIRD_PARTY', 'Third Party Information'),
+    ]
+
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='conflict_checks', verbose_name=_('Case'))
+    checked_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='performed_conflict_checks', verbose_name=_('Checked By'))
+    check_date = models.DateTimeField(_('Check Date'), auto_now_add=True)
+
+    # Check details
+    check_source = models.CharField(_('Check Source'), max_length=20, choices=SOURCE_CHOICES, default='AUTOMATED')
+    parties_checked = models.JSONField(_('Parties Checked'), default=list, help_text=_('List of parties checked for conflicts'))
+    conflicts_found = models.BooleanField(_('Conflicts Found'), default=False)
+    conflict_details = models.JSONField(_('Conflict Details'), null=True, blank=True, help_text=_('Details of any conflicts found'))
+
+    # Resolution
+    resolution_status = models.CharField(_('Resolution Status'), max_length=20, choices=RESOLUTION_CHOICES, default='NO_CONFLICT')
+    resolution_notes = models.TextField(_('Resolution Notes'), blank=True)
+    resolved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='resolved_conflict_checks',
+        verbose_name=_('Resolved By')
+    )
+    resolution_date = models.DateTimeField(_('Resolution Date'), null=True, blank=True)
+
+    # Documentation
+    waiver_document = models.FileField(_('Waiver Document'), upload_to='conflict_waivers/', null=True, blank=True)
+
+    def __str__(self):
+        return f"Conflict Check for {self.case} on {self.check_date.strftime('%Y-%m-%d')}"
+
+    def perform_check(self):
+        """
+        Run automated conflict check algorithms.
+
+        This method checks for conflicts against:
+        1. Existing clients
+        2. Opposing parties in other cases
+        3. Related entities
+
+        Returns:
+            Dictionary with check results
+        """
+        # Get case client and related parties
+        client = self.case.client
+
+        # Initialize results
+        results = {
+            'conflicts_found': False,
+            'potential_conflicts': [],
+            'details': {}
+        }
+
+        # Check against opposing parties in other cases
+        from clients.models import Client
+        opposing_parties = []
+
+        # Get all cases
+        all_cases = Case.objects.exclude(id=self.case.id)
+
+        # Check each case for potential conflicts
+        for other_case in all_cases:
+            # Skip cases for the same client
+            if other_case.client_id == client.id:
+                continue
+
+            # Check if this client is opposing party in another case
+            # This is a simplified check - in a real system, you would have a more
+            # comprehensive opposing party tracking system
+            if hasattr(other_case, 'opposing_parties'):
+                for party in other_case.opposing_parties.all():
+                    if party.name.lower() == client.name.lower():
+                        opposing_parties.append({
+                            'case_id': other_case.id,
+                            'case_number': other_case.case_number,
+                            'case_title': other_case.title,
+                            'relationship': 'Opposing Party'
+                        })
+
+        if opposing_parties:
+            results['conflicts_found'] = True
+            results['potential_conflicts'].extend(opposing_parties)
+            results['details']['opposing_parties'] = opposing_parties
+
+        # Update the model with results
+        self.conflicts_found = results['conflicts_found']
+        self.conflict_details = results
+        self.save()
+
+        return results
+
+    class Meta:
+        verbose_name = _('Conflict Check')
+        verbose_name_plural = _('Conflict Checks')
+        ordering = ['-check_date']
+        indexes = [
+            models.Index(fields=['case', 'check_date']),
+            models.Index(fields=['conflicts_found', 'resolution_status']),
+        ]

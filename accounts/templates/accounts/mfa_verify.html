@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Verification Required{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Two-Factor Authentication</h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                    <h5>Verification Required</h5>
+                    <p class="text-muted">
+                        {% if action %}
+                        Please verify your identity to {{ action }}.
+                        {% else %}
+                        Please enter the verification code from your authenticator app to continue.
+                        {% endif %}
+                    </p>
+                    {% if username %}
+                    <div class="badge bg-light text-dark mb-3">
+                        <i class="fas fa-user me-1"></i> {{ username }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.non_field_errors }}
+                        {{ form.verification_code.label_tag }}
+                        {{ form.verification_code }}
+                        {% for error in form.verification_code.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">{{ form.verification_code.help_text }}</div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Verify</button>
+                    </div>
+                </form>
+                
+                {% if backup_form %}
+                <div class="mt-4">
+                    <div class="text-center mb-3">
+                        <p class="text-muted">Don't have access to your authenticator app?</p>
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            {{ backup_form.non_field_errors }}
+                            {{ backup_form.backup_code.label_tag }}
+                            {{ backup_form.backup_code }}
+                            {% for error in backup_form.backup_code.errors %}
+                            <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">{{ backup_form.backup_code.help_text }}</div>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-outline-secondary">Use Backup Code</button>
+                        </div>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

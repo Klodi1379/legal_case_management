@@ -159,6 +159,12 @@
                         <a href="{% url 'documents:document_upload' %}" class="btn btn-outline-primary">
                             <i class="fas fa-file-upload me-2"></i>Upload Document
                         </a>
+                        <a href="{% url 'cases:conflict_check_create' case_id=case.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-balance-scale me-2"></i>Perform Conflict Check
+                        </a>
+                        <a href="{% url 'cases:case_conflict_check_list' case_id=case.id %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list-alt me-2"></i>View Conflict Checks
+                        </a>
                         <a href="#" class="btn btn-outline-primary">
                             <i class="fas fa-calendar-plus me-2"></i>Schedule Event
                         </a>

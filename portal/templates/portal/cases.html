@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Your Cases{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">Your Cases</h1>
+            <p class="text-muted">View and manage all your legal matters</p>
+        </div>
+        <a href="{% url 'portal:dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-tachometer-alt me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            {% if cases %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead style="background-color: var(--primary-color); color: white;">
+                            <tr>
+                                <th>Case Title</th>
+                                <th>Case Number</th>
+                                <th>Practice Area</th>
+                                <th>Status</th>
+                                <th>Open Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for case in cases %}
+                                <tr>
+                                    <td>{{ case.title }}</td>
+                                    <td>{{ case.case_number }}</td>
+                                    <td>{{ case.practice_area.name }}</td>
+                                    <td>
+                                        {% if case.status == 'OPEN' %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% elif case.status == 'CLOSED' %}
+                                            <span class="badge bg-secondary">Closed</span>
+                                        {% elif case.status == 'PENDING' %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ case.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ case.open_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'portal:case_detail' case.id %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye me-1"></i> View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i> You don't have any cases at the moment.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-question-circle me-2"></i>Case Status Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <h6><span class="badge bg-success me-2">Active</span> Active Cases</h6>
+                        <p>These cases are currently being worked on by your legal team.</p>
+                    </div>
+                    <div class="mb-3">
+                        <h6><span class="badge bg-warning me-2">Pending</span> Pending Cases</h6>
+                        <p>These cases are awaiting action or information before proceeding.</p>
+                    </div>
+                    <div>
+                        <h6><span class="badge bg-secondary me-2">Closed</span> Closed Cases</h6>
+                        <p>These cases have been completed and are no longer active.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Need Assistance?</h5>
+                </div>
+                <div class="card-body">
+                    <p>If you have questions about your case or need to discuss anything with your legal team, you can:</p>
+                    <ul>
+                        <li>Send a message through the secure messaging system</li>
+                        <li>Check your case documents for updates</li>
+                        <li>Review any assigned tasks that may require your attention</li>
+                    </ul>
+                    <div class="mt-3">
+                        <a href="{% url 'portal:create_message' %}" class="btn btn-primary">
+                            <i class="fas fa-envelope me-2"></i>Send a Message
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Backup Codes{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Backup Codes</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Important:</strong> Save these backup codes in a secure place. Each code can only be used once.
+                </div>
+                
+                <p>If you lose access to your authenticator app, you can use one of these backup codes to sign in. Each code can only be used once.</p>
+                
+                <div class="row mb-4">
+                    {% for code in backup_codes %}
+                    <div class="col-md-4 mb-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control" value="{{ code }}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ code }}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    We recommend saving these codes in a password manager or printing them and storing them in a secure location.
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button class="btn btn-outline-primary" onclick="window.print()">
+                        <i class="fas fa-print me-1"></i> Print Codes
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-primary">
+                        <i class="fas fa-check me-1"></i> Done
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Backup code copied to clipboard');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}

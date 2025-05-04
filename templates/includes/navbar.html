@@ -17,11 +17,35 @@
                     </a>
                 </li>
                 {% if user.is_authenticated %}
+                <!-- Dashboard link based on user role -->
+                {% if user.is_client %}
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'core:dashboard' %}">
+                    <a class="nav-link text-white" href="{% url 'portal:dashboard' %}">
                         <i class="fas fa-tachometer-alt me-1"></i> Dashboard
                     </a>
                 </li>
+                {% elif user.is_staff or user.is_superuser %}
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'core:admin_dashboard' %}">
+                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                    </a>
+                </li>
+                {% elif user.is_lawyer or user.role == 'ATTORNEY' %}
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'core:attorney_dashboard' %}">
+                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                    </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'core:staff_dashboard' %}">
+                        <i class="fas fa-tachometer-alt me-1"></i> Dashboard
+                    </a>
+                </li>
+                {% endif %}
+
+                <!-- Only show these items for staff/attorneys -->
+                {% if not user.is_client %}
                 <li class="nav-item">
                     <a class="nav-link text-white" href="{% url 'cases:case_list' %}">
                         <i class="fas fa-briefcase me-1"></i> Cases
@@ -44,6 +68,13 @@
                         </a></li>
                         <li><a class="dropdown-item text-white" href="{% url 'documents:recent_documents' %}">
                             <i class="fas fa-clock me-2"></i> Recent Documents
+                        </a></li>
+                        <li><hr class="dropdown-divider" style="border-color: var(--accent-color);"></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'documents:template_list' %}">
+                            <i class="fas fa-file-signature me-2"></i> Document Templates
+                        </a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'documents:template_upload' %}">
+                            <i class="fas fa-plus-circle me-2"></i> Upload Template
                         </a></li>
                     </ul>
                 </li>
@@ -69,11 +100,14 @@
                         </a></li>
                     </ul>
                 </li>
+                {% endif %}
 
+                <!-- AI Services for all users -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-white" href="#" id="aiServicesDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-robot me-1"></i> AI Services
+                        <span class="badge rounded-pill ms-1" style="background-color: var(--accent-color); color: var(--primary-color); font-size: 0.7rem; vertical-align: middle;">Gemma 3</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark border-0 shadow" style="background-color: var(--secondary-color);"
                         aria-labelledby="aiServicesDropdown">
@@ -90,6 +124,13 @@
                             <i class="fas fa-search-plus me-2"></i> Semantic Search
                         </a></li>
                         <li><hr class="dropdown-divider" style="border-color: var(--accent-color);"></li>
+                        <li>
+                            <div class="dropdown-item text-white">
+                                <i class="fas fa-microchip me-2"></i>
+                                <span style="font-style: italic; color: var(--accent-color);">gemma-3-12b-it-qat</span>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider" style="border-color: var(--accent-color);"></li>
                         {% if user.is_staff %}
                         <li><a class="dropdown-item text-white" href="{% url 'ai_services:model_list' %}">
                             <i class="fas fa-brain me-2"></i> LLM Models
@@ -103,6 +144,36 @@
                         {% endif %}
                     </ul>
                 </li>
+                {% if user.is_client %}
+                <!-- Client Portal Navigation -->
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'portal:dashboard' %}">
+                        <i class="fas fa-tachometer-alt me-1"></i> Client Portal
+                    </a>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="portalDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-user-shield me-1"></i> Portal
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow" style="background-color: var(--secondary-color);"
+                        aria-labelledby="portalDropdown">
+                        <li><a class="dropdown-item text-white" href="{% url 'portal:cases' %}">
+                            <i class="fas fa-briefcase me-2"></i> My Cases
+                        </a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'portal:documents' %}">
+                            <i class="fas fa-file-alt me-2"></i> My Documents
+                        </a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'portal:messages' %}">
+                            <i class="fas fa-envelope me-2"></i> Messages
+                        </a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'portal:profile' %}">
+                            <i class="fas fa-id-card me-2"></i> My Profile
+                        </a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <!-- Staff Navigation -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-white" href="#" id="createDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
@@ -116,14 +187,32 @@
                         <li><a class="dropdown-item text-white" href="{% url 'clients:client_create' %}">
                             <i class="fas fa-user-plus me-2"></i> New Client
                         </a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'documents:document_upload' %}">
+                            <i class="fas fa-file-alt me-2"></i> New Document
+                        </a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'documents:template_upload' %}">
+                            <i class="fas fa-file-signature me-2"></i> New Template
+                        </a></li>
                     </ul>
                 </li>
                 {% endif %}
+                {% endif %}
                 {% if user.is_staff %}
-                <li class="nav-item">
-                    <a class="nav-link text-white" href="{% url 'admin:index' %}">
-                        <i class="fas fa-cog me-1"></i> Admin
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle text-white" href="#" id="adminDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-shield-alt me-1"></i> Security
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow" style="background-color: var(--secondary-color);"
+                        aria-labelledby="adminDropdown">
+                        <li><a class="dropdown-item text-white" href="{% url 'core:audit_log' %}">
+                            <i class="fas fa-history me-2"></i> Audit Log
+                        </a></li>
+                        <li><hr class="dropdown-divider" style="border-color: var(--accent-color);"></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'admin:index' %}">
+                            <i class="fas fa-cog me-2"></i> Admin Panel
+                        </a></li>
+                    </ul>
                 </li>
                 {% endif %}
             </ul>
@@ -136,9 +225,18 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark border-0 shadow"
                         style="background-color: var(--secondary-color);" aria-labelledby="userDropdown">
+                        {% if user.is_client %}
+                        <li><a class="dropdown-item text-white" href="{% url 'portal:profile' %}">
+                            <i class="fas fa-id-card me-2"></i> My Profile
+                        </a></li>
+                        <li><a class="dropdown-item text-white" href="{% url 'portal:dashboard' %}">
+                            <i class="fas fa-tachometer-alt me-2"></i> Client Portal
+                        </a></li>
+                        {% else %}
                         <li><a class="dropdown-item text-white" href="{% url 'accounts:profile' %}">
                             <i class="fas fa-id-card me-2"></i> Profile
                         </a></li>
+                        {% endif %}
                         <li><a class="dropdown-item text-white" href="{% url 'accounts:password_change' %}">
                             <i class="fas fa-key me-2"></i> Change Password
                         </a></li>

@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="mb-3">{{ title }}</h2>
+            
+            <!-- Conflict Check Summary -->
+            <div class="card mb-4">
+                <div class="card-header {% if conflict_check.conflicts_found %}bg-warning{% else %}bg-success{% endif %} text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-{% if conflict_check.conflicts_found %}exclamation-triangle{% else %}check-circle{% endif %} me-2"></i>
+                        {% if conflict_check.conflicts_found %}
+                            Potential Conflicts Found
+                        {% else %}
+                            No Conflicts Found
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Case:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <a href="{% url 'cases:case_detail' case_id=conflict_check.case.id %}">{{ conflict_check.case.title }}</a>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Check Date:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ conflict_check.check_date|date:"F j, Y, g:i a" }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Checked By:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ conflict_check.checked_by.get_full_name }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Check Source:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ conflict_check.get_check_source_display }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Status:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            <span class="badge {% if conflict_check.resolution_status == 'NO_CONFLICT' %}bg-success{% elif conflict_check.resolution_status == 'CONFLICT_WAIVED' %}bg-info{% elif conflict_check.resolution_status == 'DECLINED' %}bg-danger{% else %}bg-warning{% endif %}">
+                                {{ conflict_check.get_resolution_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    {% if conflict_check.resolution_date %}
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Resolved By:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ conflict_check.resolved_by.get_full_name }} on {{ conflict_check.resolution_date|date:"F j, Y" }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if conflict_check.resolution_notes %}
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Resolution Notes:</strong>
+                        </div>
+                        <div class="col-md-8">
+                            {{ conflict_check.resolution_notes|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Parties Checked -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Parties Checked</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for party in conflict_check.parties_checked %}
+                                <tr>
+                                    <td>{{ party.name }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">{{ party.type }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">No parties recorded</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Conflict Details -->
+            {% if conflict_check.conflicts_found %}
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0">Conflict Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Case</th>
+                                    <th>Relationship</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for conflict in conflict_check.conflict_details.potential_conflicts %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'cases:case_detail' case_id=conflict.case_id %}">
+                                            {{ conflict.case_title }} ({{ conflict.case_number }})
+                                        </a>
+                                    </td>
+                                    <td>{{ conflict.relationship }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center">No specific conflicts recorded</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Resolution Form -->
+            {% if conflict_check.conflicts_found and conflict_check.resolution_status in 'POTENTIAL_CONFLICT,CONFLICT_UNRESOLVED' %}
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Resolve Conflict</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'cases:conflict_check_resolve' check_id=conflict_check.id %}">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="resolution_status" class="form-label">Resolution</label>
+                            <select name="resolution_status" id="resolution_status" class="form-select" required>
+                                <option value="">-- Select Resolution --</option>
+                                <option value="NO_CONFLICT">No Conflict Found</option>
+                                <option value="CONFLICT_WAIVED">Conflict Waived</option>
+                                <option value="CONFLICT_UNRESOLVED">Conflict Unresolved</option>
+                                <option value="DECLINED">Representation Declined Due to Conflict</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="resolution_notes" class="form-label">Resolution Notes</label>
+                            <textarea name="resolution_notes" id="resolution_notes" class="form-control" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check me-1"></i>Save Resolution
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="mt-4">
+                <a href="{% url 'cases:case_detail' case_id=conflict_check.case.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Case
+                </a>
+                
+                {% if perms.cases.add_conflictcheck %}
+                <a href="{% url 'cases:conflict_check_create' case_id=conflict_check.case.id %}" class="btn btn-outline-primary ms-2">
+                    <i class="fas fa-plus me-1"></i>New Conflict Check
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card sticky-top" style="top: 20px;">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">About Conflict Resolutions</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Resolution Types</h6>
+                    <ul class="small">
+                        <li><strong>No Conflict Found:</strong> After review, no actual conflict exists.</li>
+                        <li><strong>Conflict Waived:</strong> Conflict exists but has been waived by all parties.</li>
+                        <li><strong>Conflict Unresolved:</strong> Conflict exists and has not been resolved yet.</li>
+                        <li><strong>Representation Declined:</strong> Representation declined due to conflict.</li>
+                    </ul>
+                    
+                    <h6 class="mt-3">Documentation Requirements</h6>
+                    <p class="small">For waived conflicts, ensure proper documentation including signed waivers from all affected parties.</p>
+                    
+                    <h6 class="mt-3">Ethical Considerations</h6>
+                    <p class="small">Always prioritize ethical obligations and client interests when resolving conflicts.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

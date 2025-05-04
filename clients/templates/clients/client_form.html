@@ -1,6 +1,6 @@
 <!-- clients/templates/clients/client_form.html -->
 {% extends "base.html" %}
-{% load add_class%}
+{% load add_class %}
 {% block title %}
     {% if form.instance.pk %}Edit Client{% else %}Add New Client{% endif %}
 {% endblock %}
@@ -8,7 +8,7 @@
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
+        <div class="col-md-10">
             <div class="card shadow">
                 <div class="card-header bg-primary text-white">
                     <h2 class="mb-0 text-center">{% if form.instance.pk %}Edit Client{% else %}Add New Client{% endif %}</h2>
@@ -16,21 +16,220 @@
                 <div class="card-body">
                     <form method="post">
                         {% csrf_token %}
-                        {% for field in form %}
+
+                        <!-- Client Type -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Client Type</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.client_type.label_tag }}
+                                        {{ form.client_type|add_class:"form-control" }}
+                                        {% for error in form.client_type.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.industry.label_tag }}
+                                        {{ form.industry|add_class:"form-control" }}
+                                        {% for error in form.industry.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Personal Information -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Personal Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_first_name.label_tag }}
+                                        {{ form.secure_first_name|add_class:"form-control" }}
+                                        {% for error in form.secure_first_name.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_last_name.label_tag }}
+                                        {{ form.secure_last_name|add_class:"form-control" }}
+                                        {% for error in form.secure_last_name.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.date_of_birth.label_tag }}
+                                        {{ form.date_of_birth|add_class:"form-control" }}
+                                        {% for error in form.date_of_birth.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_ssn_last_four.label_tag }}
+                                        {{ form.secure_ssn_last_four|add_class:"form-control" }}
+                                        {% for error in form.secure_ssn_last_four.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Organization Information -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Organization Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_company_name.label_tag }}
+                                        {{ form.secure_company_name|add_class:"form-control" }}
+                                        {% for error in form.secure_company_name.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_tax_id.label_tag }}
+                                        {{ form.secure_tax_id|add_class:"form-control" }}
+                                        {% for error in form.secure_tax_id.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Contact Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_email.label_tag }}
+                                        {{ form.secure_email|add_class:"form-control" }}
+                                        {% for error in form.secure_email.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_phone.label_tag }}
+                                        {{ form.secure_phone|add_class:"form-control" }}
+                                        {% for error in form.secure_phone.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_mobile.label_tag }}
+                                        {{ form.secure_mobile|add_class:"form-control" }}
+                                        {% for error in form.secure_mobile.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address Information -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Address Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_address_line1.label_tag }}
+                                        {{ form.secure_address_line1|add_class:"form-control" }}
+                                        {% for error in form.secure_address_line1.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_address_line2.label_tag }}
+                                        {{ form.secure_address_line2|add_class:"form-control" }}
+                                        {% for error in form.secure_address_line2.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_city.label_tag }}
+                                        {{ form.secure_city|add_class:"form-control" }}
+                                        {% for error in form.secure_city.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_state.label_tag }}
+                                        {{ form.secure_state|add_class:"form-control" }}
+                                        {% for error in form.secure_state.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_postal_code.label_tag }}
+                                        {{ form.secure_postal_code|add_class:"form-control" }}
+                                        {% for error in form.secure_postal_code.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        {{ form.secure_country.label_tag }}
+                                        {{ form.secure_country|add_class:"form-control" }}
+                                        {% for error in form.secure_country.errors %}
+                                            <div class="text-danger">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notes -->
+                        <div class="mb-4">
+                            <h5 class="border-bottom pb-2 mb-3">Notes</h5>
                             <div class="form-group mb-3">
-                                {{ field.label_tag }}
-                                {{ field|add_class:"form-control" }}
-                                {% if field.help_text %}
-                                    <small class="form-text text-muted">{{ field.help_text }}</small>
-                                {% endif %}
-                                {% for error in field.errors %}
+                                {{ form.secure_notes.label_tag }}
+                                {{ form.secure_notes|add_class:"form-control" }}
+                                {% for error in form.secure_notes.errors %}
                                     <div class="text-danger">{{ error }}</div>
                                 {% endfor %}
                             </div>
-                        {% endfor %}
-                        <button type="submit" class="btn btn-success btn-block">Save</button>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{% url 'clients:client_list' %}" class="btn btn-secondary me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Client</button>
+                        </div>
                     </form>
-                    <a href="{% url 'clients:client_list' %}" class="btn btn-secondary btn-block mt-3">Back to Client List</a>
                 </div>
             </div>
         </div>

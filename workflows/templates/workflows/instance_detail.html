@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Workflow: {{ instance.template.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Workflow: {{ instance.template.name }}</h1>
+        <a href="{% url 'workflows:dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Workflow Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Status:</div>
+                        <div class="col-md-8">
+                            {% if instance.status == 'ACTIVE' %}
+                                <span class="badge bg-success">Active</span>
+                            {% elif instance.status == 'COMPLETED' %}
+                                <span class="badge bg-primary">Completed</span>
+                            {% elif instance.status == 'CANCELED' %}
+                                <span class="badge bg-danger">Canceled</span>
+                            {% elif instance.status == 'SUSPENDED' %}
+                                <span class="badge bg-warning">Suspended</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Current Step:</div>
+                        <div class="col-md-8">{{ instance.current_step.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Related Object:</div>
+                        <div class="col-md-8">{{ instance.content_object }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Created By:</div>
+                        <div class="col-md-8">{{ instance.created_by.get_full_name|default:instance.created_by.username }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Created At:</div>
+                        <div class="col-md-8">{{ instance.created_at|date:"F j, Y, g:i a" }}</div>
+                    </div>
+                    {% if instance.completed_at %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Completed At:</div>
+                        <div class="col-md-8">{{ instance.completed_at|date:"F j, Y, g:i a" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Available Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if instance.status == 'ACTIVE' %}
+                        {% if available_transitions %}
+                            {% for transition in available_transitions %}
+                                <button type="button" class="btn btn-primary mb-2 w-100" data-bs-toggle="modal" data-bs-target="#transitionModal{{ transition.id }}">
+                                    {{ transition.name }}
+                                </button>
+                                
+                                <!-- Transition Modal -->
+                                <div class="modal fade" id="transitionModal{{ transition.id }}" tabindex="-1" aria-labelledby="transitionModalLabel{{ transition.id }}" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="transitionModalLabel{{ transition.id }}">{{ transition.name }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                            </div>
+                                            <form method="post" action="{% url 'workflows:transition' instance.id transition.id %}">
+                                                {% csrf_token %}
+                                                <div class="modal-body">
+                                                    <p>{{ transition.description }}</p>
+                                                    <p>This will move the workflow from <strong>{{ transition.source_step.name }}</strong> to <strong>{{ transition.target_step.name }}</strong>.</p>
+                                                    <div class="mb-3">
+                                                        <label for="notes" class="form-label">Notes (optional)</label>
+                                                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Proceed</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                No available transitions at this step.
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This workflow is {{ instance.get_status_display|lower }} and cannot be transitioned.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Tasks</h5>
+                </div>
+                <div class="card-body">
+                    {% if tasks %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Priority</th>
+                                        <th>Assigned To</th>
+                                        <th>Due Date</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in tasks %}
+                                        <tr>
+                                            <td>{{ task.title }}</td>
+                                            <td>
+                                                {% if task.status == 'PENDING' %}
+                                                    <span class="badge bg-warning">Pending</span>
+                                                {% elif task.status == 'IN_PROGRESS' %}
+                                                    <span class="badge bg-info">In Progress</span>
+                                                {% elif task.status == 'COMPLETED' %}
+                                                    <span class="badge bg-success">Completed</span>
+                                                {% elif task.status == 'CANCELED' %}
+                                                    <span class="badge bg-danger">Canceled</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                {% if task.priority == 1 %}
+                                                    <span class="text-muted">Low</span>
+                                                {% elif task.priority == 2 %}
+                                                    <span>Normal</span>
+                                                {% elif task.priority == 3 %}
+                                                    <span class="text-primary fw-bold">High</span>
+                                                {% elif task.priority == 4 %}
+                                                    <span class="text-danger fw-bold">Urgent</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</td>
+                                            <td>{{ task.due_date|date:"M d, Y"|default:"-" }}</td>
+                                            <td>
+                                                <a href="{% url 'workflows:task_detail' task.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No tasks for this workflow.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Workflow History</h5>
+                </div>
+                <div class="card-body">
+                    {% if logs %}
+                        <div class="timeline">
+                            {% for log in logs %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker">
+                                        {% if log.action == 'CREATED' %}
+                                            <i class="fas fa-play-circle text-success"></i>
+                                        {% elif log.action == 'TRANSITION' %}
+                                            <i class="fas fa-arrow-right text-primary"></i>
+                                        {% elif log.action == 'COMPLETED' %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                        {% elif log.action == 'CANCELED' %}
+                                            <i class="fas fa-times-circle text-danger"></i>
+                                        {% else %}
+                                            <i class="fas fa-circle text-secondary"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex justify-content-between">
+                                            <h6 class="mb-1">{{ log.get_action_display }}</h6>
+                                            <small class="text-muted">{{ log.timestamp|date:"M d, Y, g:i a" }}</small>
+                                        </div>
+                                        <p class="mb-1">{{ log.notes }}</p>
+                                        <small class="text-muted">
+                                            By: {{ log.user.get_full_name|default:log.user.username }} | 
+                                            Step: {{ log.step.name }}
+                                            {% if log.transition %}
+                                                | Transition: {{ log.transition.name }}
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No history for this workflow.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-left: 2px solid #e9ecef;
+        padding-left: 20px;
+    }
+    
+    .timeline-marker {
+        position: absolute;
+        left: -10px;
+        width: 20px;
+        height: 20px;
+        text-align: center;
+        background-color: white;
+        border-radius: 50%;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}{{ thread.subject }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">{{ thread.subject }}</h1>
+            {% if thread.case %}
+                <p class="text-muted">
+                    Case: <a href="{% url 'portal:case_detail' thread.case.id %}">{{ thread.case.title }}</a>
+                </p>
+            {% endif %}
+        </div>
+        <div>
+            <a href="{% url 'portal:messages' %}" class="btn btn-outline-primary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Messages
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="message-thread">
+                        {% for message in messages %}
+                            <div class="message {% if message.sender == request.user %}message-sent{% else %}message-received{% endif %} mb-4">
+                                <div class="message-header d-flex justify-content-between align-items-center mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar me-2">
+                                            <i class="fas fa-user-circle fa-2x {% if message.sender == request.user %}text-primary{% else %}text-secondary{% endif %}"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold">{{ message.sender.get_full_name }}</div>
+                                            <div class="text-muted small">{{ message.created_at|date:"M d, Y g:i A" }}</div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        {% if message.sender == request.user %}
+                                            <span class="badge bg-primary">You</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ message.sender.role }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="message-content p-3 {% if message.sender == request.user %}bg-light{% else %}bg-primary text-white{% endif %} rounded">
+                                    {{ message.content|linebreaks }}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if not thread.is_closed %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-reply me-2"></i>Reply</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ form.content }}
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane me-2"></i>Send Reply
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% else %}
+                <div class="alert alert-secondary">
+                    <i class="fas fa-lock me-2"></i> This conversation is closed and cannot be replied to.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Conversation Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Started by:</strong> {{ thread.created_by.get_full_name }}</p>
+                            <p><strong>Created:</strong> {{ thread.created_at|date:"F j, Y g:i A" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Last updated:</strong> {{ thread.updated_at|date:"F j, Y g:i A" }}</p>
+                            <p><strong>Status:</strong> 
+                                {% if thread.is_closed %}
+                                    <span class="badge bg-secondary">Closed</span>
+                                {% else %}
+                                    <span class="badge bg-success">Active</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <h6>Participants:</h6>
+                        <div class="d-flex flex-wrap">
+                            {% for participant in thread.participants.all %}
+                                <div class="me-3 mb-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar me-2">
+                                            <i class="fas fa-user-circle text-primary"></i>
+                                        </div>
+                                        <div>
+                                            {{ participant.get_full_name }}
+                                            <small class="text-muted d-block">{{ participant.get_role_display }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .message-thread {
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    .message-sent {
+        margin-left: 20%;
+    }
+    .message-received {
+        margin-right: 20%;
+    }
+</style>
+{% endblock %}

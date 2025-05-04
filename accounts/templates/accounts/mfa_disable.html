@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}Disable Two-Factor Authentication{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h4 class="mb-0">Disable Two-Factor Authentication</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Warning:</strong> Disabling two-factor authentication will reduce the security of your account.
+                </div>
+                
+                <p>To confirm that you want to disable two-factor authentication, please enter the verification code from your authenticator app:</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.non_field_errors }}
+                        {{ form.verification_code.label_tag }}
+                        {{ form.verification_code }}
+                        {% for error in form.verification_code.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">{{ form.verification_code.help_text }}</div>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-danger">Disable Two-Factor Authentication</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

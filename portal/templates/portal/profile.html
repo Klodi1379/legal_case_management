@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}Your Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">Your Profile</h1>
+            <p class="text-muted">View and manage your account information</p>
+        </div>
+        <a href="{% url 'portal:dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-tachometer-alt me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user me-2"></i>Personal Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="avatar-placeholder mb-3">
+                            <i class="fas fa-user-circle fa-5x text-primary"></i>
+                        </div>
+                        <h4>{{ client.user.get_full_name }}</h4>
+                        <p class="text-muted">Client since {{ client.created_at|date:"F Y" }}</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Email</label>
+                        <div class="form-control-plaintext">{{ client.user.email }}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Phone</label>
+                        <div class="form-control-plaintext">{{ client.phone|default:"Not provided" }}</div>
+                    </div>
+
+                    {% if client.company_name %}
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Company</label>
+                        <div class="form-control-plaintext">{{ client.company_name }}</div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid mt-4">
+                        <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-key me-2"></i>Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Security</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Two-Factor Authentication</label>
+                        <div class="form-control-plaintext">
+                            {% if client.user.mfa_setup.is_enabled %}
+                                <span class="badge bg-success"><i class="fas fa-check me-1"></i> Enabled</span>
+                            {% else %}
+                                <span class="badge bg-warning"><i class="fas fa-times me-1"></i> Not Enabled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Last Login</label>
+                        <div class="form-control-plaintext">
+                            {% if client.user.portal_access.last_login %}
+                                {{ client.user.portal_access.last_login|date:"F j, Y g:i A" }}
+                            {% else %}
+                                Not available
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="d-grid mt-4">
+                        <a href="{% url 'accounts:mfa_setup' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-lock me-2"></i>Manage Security Settings
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-address-card me-2"></i>Contact Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Address</label>
+                                <div class="form-control-plaintext">
+                                    {{ client.address_line1|default:"" }}<br>
+                                    {% if client.address_line2 %}{{ client.address_line2 }}<br>{% endif %}
+                                    {{ client.city|default:"" }}{% if client.city and client.state %}, {% endif %}{{ client.state|default:"" }} {{ client.postal_code|default:"" }}<br>
+                                    {{ client.country|default:"" }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Phone</label>
+                                <div class="form-control-plaintext">{{ client.phone|default:"Not provided" }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Mobile</label>
+                                <div class="form-control-plaintext">{{ client.mobile|default:"Not provided" }}</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-muted">Email</label>
+                                <div class="form-control-plaintext">{{ client.user.email }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Your Cases</h5>
+                    <a href="{% url 'portal:cases' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Case</th>
+                                    <th>Status</th>
+                                    <th>Open Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for case in client.case_set.all|slice:":3" %}
+                                    <tr>
+                                        <td>{{ case.title }}</td>
+                                        <td>
+                                            {% if case.status == 'OPEN' %}
+                                                <span class="badge bg-success">Active</span>
+                                            {% elif case.status == 'CLOSED' %}
+                                                <span class="badge bg-secondary">Closed</span>
+                                            {% elif case.status == 'PENDING' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% else %}
+                                                <span class="badge bg-info">{{ case.status }}</span>
+                                            {% endif %}
+                                        </td>
+                                        <td>{{ case.open_date|date:"M d, Y" }}</td>
+                                        <td>
+                                            <a href="{% url 'portal:case_detail' case.id %}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye me-1"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="4" class="text-center">No cases found.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="#">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="emailNotifications" checked>
+                                <label class="form-check-label" for="emailNotifications">Email Notifications</label>
+                            </div>
+                            <div class="form-text">Receive email notifications for new messages and case updates.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="documentAlerts" checked>
+                                <label class="form-check-label" for="documentAlerts">Document Alerts</label>
+                            </div>
+                            <div class="form-text">Receive alerts when new documents are added to your cases.</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="taskReminders" checked>
+                                <label class="form-check-label" for="taskReminders">Task Reminders</label>
+                            </div>
+                            <div class="form-text">Receive reminders for upcoming tasks and deadlines.</div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" disabled>
+                                <i class="fas fa-save me-2"></i>Save Preferences
+                            </button>
+                            <div class="form-text text-center mt-2">Preference management coming soon.</div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -4,6 +4,32 @@
 {% block page_title %}AI Dashboard{% endblock %}
 
 {% block ai_content %}
+<!-- Current Model Information -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 bg-gradient" style="background-color: var(--primary-color);">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="me-4">
+                        <div class="rounded-circle bg-white p-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                            <i class="fas fa-microchip fa-2x" style="color: var(--primary-color);"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-white mb-0">Current AI Model: <span style="color: var(--accent-color);">Gemma 3</span></h4>
+                        <p class="text-white-50 mb-0">Using <span class="fw-bold" style="color: var(--light-accent);">gemma-3-12b-it-qat</span> for enhanced legal analysis</p>
+                    </div>
+                    <div class="ms-auto">
+                        <a href="{% url 'ai_services:model_list' %}" class="btn btn-sm" style="background-color: var(--accent-color); color: var(--primary-color);">
+                            <i class="fas fa-cog me-1"></i> Manage Models
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="row mb-4">
     <!-- Statistics Cards -->
     <div class="col-md-4">

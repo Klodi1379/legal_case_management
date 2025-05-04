@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }} - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>{{ title }}</h2>
+                
+                {% if case and perms.cases.add_conflictcheck %}
+                <a href="{% url 'cases:conflict_check_create' case_id=case.id %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-1"></i>New Conflict Check
+                </a>
+                {% endif %}
+            </div>
+            
+            <div class="card">
+                <div class="card-header bg-light">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-0">
+                                <i class="fas fa-balance-scale me-2"></i>Conflict Checks
+                            </h5>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search...">
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover mb-0" id="conflictChecksTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Case</th>
+                                    <th>Check Date</th>
+                                    <th>Checked By</th>
+                                    <th>Status</th>
+                                    <th>Resolution</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for check in conflict_checks %}
+                                <tr>
+                                    <td>
+                                        <a href="{% url 'cases:case_detail' case_id=check.case.id %}">
+                                            {{ check.case.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ check.check_date|date:"M d, Y" }}</td>
+                                    <td>{{ check.checked_by.get_full_name }}</td>
+                                    <td>
+                                        {% if check.conflicts_found %}
+                                        <span class="badge bg-warning text-dark">Conflicts Found</span>
+                                        {% else %}
+                                        <span class="badge bg-success">No Conflicts</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge {% if check.resolution_status == 'NO_CONFLICT' %}bg-success{% elif check.resolution_status == 'CONFLICT_WAIVED' %}bg-info{% elif check.resolution_status == 'DECLINED' %}bg-danger{% else %}bg-warning{% endif %}">
+                                            {{ check.get_resolution_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'cases:conflict_check_detail' check_id=check.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-4">
+                                        <p class="mb-0 text-muted">No conflict checks found.</p>
+                                        
+                                        {% if case and perms.cases.add_conflictcheck %}
+                                        <a href="{% url 'cases:conflict_check_create' case_id=case.id %}" class="btn btn-sm btn-outline-primary mt-2">
+                                            <i class="fas fa-plus me-1"></i>Create First Conflict Check
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                {% if case %}
+                <a href="{% url 'cases:case_detail' case_id=case.id %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Case
+                </a>
+                {% else %}
+                <a href="{% url 'cases:case_list' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Back to Cases
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Simple search functionality
+        const searchInput = document.getElementById('searchInput');
+        const table = document.getElementById('conflictChecksTable');
+        const rows = table.querySelectorAll('tbody tr');
+        
+        searchInput.addEventListener('keyup', function() {
+            const searchTerm = searchInput.value.toLowerCase();
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

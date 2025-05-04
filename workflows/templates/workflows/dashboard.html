@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Workflow Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">Workflow Dashboard</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>My Tasks</h5>
+                </div>
+                <div class="card-body">
+                    {% if pending_tasks %}
+                        <div class="list-group">
+                            {% for task in pending_tasks %}
+                                <a href="{% url 'workflows:task_detail' task.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ task.title }}</h6>
+                                        <small class="text-muted">
+                                            {% if task.status == 'PENDING' %}
+                                                <span class="badge bg-warning">Pending</span>
+                                            {% elif task.status == 'IN_PROGRESS' %}
+                                                <span class="badge bg-info">In Progress</span>
+                                            {% endif %}
+                                        </small>
+                                    </div>
+                                    <p class="mb-1 small">{{ task.workflow_instance.template.name }} - {{ task.step.name }}</p>
+                                    {% if task.due_date %}
+                                        <small class="text-muted">Due: {{ task.due_date|date:"M d, Y" }}</small>
+                                    {% endif %}
+                                </a>
+                            {% endfor %}
+                        </div>
+                        <div class="mt-3">
+                            <a href="{% url 'workflows:task_list' %}" class="btn btn-sm btn-outline-primary">View All Tasks</a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            You have no pending tasks.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Active Workflows</h5>
+                </div>
+                <div class="card-body">
+                    {% if active_instances %}
+                        <div class="list-group">
+                            {% for instance in active_instances %}
+                                <a href="{% url 'workflows:instance_detail' instance.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ instance.template.name }}</h6>
+                                        <small class="text-muted">{{ instance.created_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1 small">Current Step: {{ instance.current_step.name }}</p>
+                                    <small class="text-muted">{{ instance.content_object }}</small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            You have no active workflows.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Available Workflow Templates</h5>
+                </div>
+                <div class="card-body">
+                    {% if available_templates %}
+                        <div class="list-group">
+                            {% for template in available_templates %}
+                                <div class="list-group-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ template.name }}</h6>
+                                        <small class="text-muted">{{ template.get_content_type_display }}</small>
+                                    </div>
+                                    <p class="mb-1 small">{{ template.description|truncatechars:100 }}</p>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No workflow templates available.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-check-circle me-2"></i>Recently Completed Workflows</h5>
+                </div>
+                <div class="card-body">
+                    {% if completed_instances %}
+                        <div class="list-group">
+                            {% for instance in completed_instances %}
+                                <a href="{% url 'workflows:instance_detail' instance.id %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ instance.template.name }}</h6>
+                                        <small class="text-muted">{{ instance.completed_at|date:"M d, Y" }}</small>
+                                    </div>
+                                    <p class="mb-1 small">Completed at: {{ instance.current_step.name }}</p>
+                                    <small class="text-muted">{{ instance.content_object }}</small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No recently completed workflows.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

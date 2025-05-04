@@ -16,6 +16,18 @@
                 <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                     <span>AI Services</span>
                 </h6>
+
+                <!-- Current Model Badge -->
+                <div class="px-3 py-2 mb-3">
+                    <div class="d-flex align-items-center p-2 rounded" style="background-color: var(--light-bg);">
+                        <i class="fas fa-microchip me-2" style="color: var(--accent-color);"></i>
+                        <div>
+                            <div class="fw-bold" style="font-size: 0.9rem;">Gemma 3</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">gemma-3-12b-it-qat</div>
+                        </div>
+                    </div>
+                </div>
+
                 <ul class="nav flex-column">
                     <li class="nav-item">
                         <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" href="{% url 'ai_services:dashboard' %}">

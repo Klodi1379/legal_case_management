@@ -1,0 +1,269 @@
+{% extends "base.html" %}
+
+{% block title %}Attorney Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="page-title">Attorney Dashboard</h1>
+            <p class="text-muted">Manage your cases, clients, and legal work efficiently.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex align-items-center justify-content-end">
+                <div class="me-3">
+                    <h5 class="mb-0">{{ user.get_full_name }}</h5>
+                    <small class="text-muted">{{ user.get_role_display }}</small>
+                </div>
+                <div class="avatar">
+                    <i class="fas fa-user-tie fa-3x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Case Overview</h5>
+                    <span class="badge bg-accent">Today</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-4 mb-2" style="color: var(--primary-color);">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h3 class="mb-0">{{ active_cases_count|default:"--" }}</h3>
+                            <p class="text-muted">Active Cases</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-4 mb-2" style="color: var(--primary-color);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="mb-0">{{ clients_count|default:"--" }}</h3>
+                            <p class="text-muted">Clients</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-4 mb-2" style="color: var(--primary-color);">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <h3 class="mb-0">{{ pending_tasks_count|default:"--" }}</h3>
+                            <p class="text-muted">Pending Tasks</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>Calendar</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-center mb-2">{{ now|date:"l, F j, Y" }}</p>
+                    <div class="d-grid">
+                        <a href="#" class="btn btn-outline-primary">
+                            <i class="fas fa-calendar-alt me-2"></i>View Calendar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-briefcase me-2"></i>Cases</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="display-4 me-3" style="color: var(--primary-color);">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">Manage Cases</h3>
+                            <p class="text-muted mb-0">Track and organize your legal matters</p>
+                        </div>
+                    </div>
+                    <p>Access all your active cases, create new ones, and track their progress.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'cases:case_list' %}" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>View Cases
+                        </a>
+                    </div>
+                    <div class="d-grid mt-2">
+                        <a href="{% url 'cases:case_create' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>New Case
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-tie me-2"></i>Clients</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="display-4 me-3" style="color: var(--primary-color);">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">Client Relations</h3>
+                            <p class="text-muted mb-0">Manage your client portfolio</p>
+                        </div>
+                    </div>
+                    <p>Access your client database, add new clients, and manage their information.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'clients:client_list' %}" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>View Clients
+                        </a>
+                    </div>
+                    <div class="d-grid mt-2">
+                        <a href="{% url 'clients:client_create' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-plus me-2"></i>New Client
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Documents</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="display-4 me-3" style="color: var(--primary-color);">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">Document Center</h3>
+                            <p class="text-muted mb-0">Organize your legal documents</p>
+                        </div>
+                    </div>
+                    <p>Access all your documents, upload new ones, and manage your files.</p>
+                    <div class="d-grid">
+                        <a href="{% url 'documents:recent_documents' %}" class="btn btn-primary">
+                            <i class="fas fa-clock me-2"></i>Recent Documents
+                        </a>
+                    </div>
+                    <div class="d-grid mt-2">
+                        <a href="{% url 'documents:document_upload' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-upload me-2"></i>Upload Document
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Billing</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="display-4 me-3" style="color: var(--primary-color);">
+                            <i class="fas fa-money-check-alt"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">Financial Management</h3>
+                            <p class="text-muted mb-0">Track time and manage invoices</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'billing:time_entry_list' %}" class="btn btn-outline-primary mb-2">
+                                    <i class="fas fa-clock me-2"></i>Time Entries
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'billing:invoice_list' %}" class="btn btn-outline-primary mb-2">
+                                    <i class="fas fa-file-invoice me-2"></i>Invoices
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'billing:time_entry_create' %}" class="btn btn-accent mb-2">
+                                    <i class="fas fa-plus me-2"></i>Log Time
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'billing:invoice_create' %}" class="btn btn-accent mb-2">
+                                    <i class="fas fa-plus me-2"></i>Create Invoice
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-robot me-2"></i>AI Assistant</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="display-4 me-3" style="color: var(--primary-color);">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">Legal AI Tools</h3>
+                            <p class="text-muted mb-0">Enhance your legal work with AI</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'ai_services:document_analysis' %}" class="btn btn-outline-primary mb-2">
+                                    <i class="fas fa-file-search me-2"></i>Document Analysis
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'ai_services:legal_research' %}" class="btn btn-outline-primary mb-2">
+                                    <i class="fas fa-search me-2"></i>Legal Research
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'ai_services:document_generation' %}" class="btn btn-accent mb-2">
+                                    <i class="fas fa-file-alt me-2"></i>Generate Documents
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-grid">
+                                <a href="{% url 'ai_services:dashboard' %}" class="btn btn-accent mb-2">
+                                    <i class="fas fa-tachometer-alt me-2"></i>AI Dashboard
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

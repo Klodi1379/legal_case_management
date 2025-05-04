@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Your Documents{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="page-title">Your Documents</h1>
+            <p class="text-muted">Access and download documents related to your cases</p>
+        </div>
+        <a href="{% url 'portal:dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-tachometer-alt me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    {% if error %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle me-2"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="documentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" type="button" role="tab" aria-controls="all" aria-selected="true">All Documents</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="legal-tab" data-bs-toggle="tab" data-bs-target="#legal" type="button" role="tab" aria-controls="legal" aria-selected="false">Legal Documents</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="correspondence-tab" data-bs-toggle="tab" data-bs-target="#correspondence" type="button" role="tab" aria-controls="correspondence" aria-selected="false">Correspondence</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="evidence-tab" data-bs-toggle="tab" data-bs-target="#evidence" type="button" role="tab" aria-controls="evidence" aria-selected="false">Evidence</button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="documentTabsContent">
+                <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                    {% if documents %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead style="background-color: var(--primary-color); color: white;">
+                                    <tr>
+                                        <th>Document Title</th>
+                                        <th>Type</th>
+                                        <th>Case</th>
+                                        <th>Uploaded</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doc in documents %}
+                                        <tr>
+                                            <td>{{ doc.title }}</td>
+                                            <td>{{ doc.get_document_type_display }}</td>
+                                            <td>
+                                                <a href="{% url 'portal:case_detail' doc.case.id %}">
+                                                    {{ doc.case.title }}
+                                                </a>
+                                            </td>
+                                            <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <a href="{{ doc.file.url }}" class="btn btn-primary btn-sm" target="_blank">
+                                                    <i class="fas fa-download me-1"></i> Download
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle me-2"></i> No documents available.
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="tab-pane fade" id="legal" role="tabpanel" aria-labelledby="legal-tab">
+                    {% with legal_docs=documents|dictsortreversed:"document_type"|dictsort:"document_type" %}
+                        {% if legal_docs %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead style="background-color: var(--primary-color); color: white;">
+                                        <tr>
+                                            <th>Document Title</th>
+                                            <th>Type</th>
+                                            <th>Case</th>
+                                            <th>Uploaded</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for doc in legal_docs %}
+                                            {% if doc.document_type in 'PLEADING,MOTION,BRIEF,CONTRACT,AGREEMENT' %}
+                                                <tr>
+                                                    <td>{{ doc.title }}</td>
+                                                    <td>{{ doc.get_document_type_display }}</td>
+                                                    <td>
+                                                        <a href="{% url 'portal:case_detail' doc.case.id %}">
+                                                            {{ doc.case.title }}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                                                    <td>
+                                                        <a href="{{ doc.file.url }}" class="btn btn-primary btn-sm" target="_blank">
+                                                            <i class="fas fa-download me-1"></i> Download
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i> No legal documents available.
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="tab-pane fade" id="correspondence" role="tabpanel" aria-labelledby="correspondence-tab">
+                    {% with correspondence=documents|dictsortreversed:"document_type"|dictsort:"document_type" %}
+                        {% if correspondence %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead style="background-color: var(--primary-color); color: white;">
+                                        <tr>
+                                            <th>Document Title</th>
+                                            <th>Type</th>
+                                            <th>Case</th>
+                                            <th>Uploaded</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for doc in correspondence %}
+                                            {% if doc.document_type in 'LETTER,EMAIL,MEMO' %}
+                                                <tr>
+                                                    <td>{{ doc.title }}</td>
+                                                    <td>{{ doc.get_document_type_display }}</td>
+                                                    <td>
+                                                        <a href="{% url 'portal:case_detail' doc.case.id %}">
+                                                            {{ doc.case.title }}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                                                    <td>
+                                                        <a href="{{ doc.file.url }}" class="btn btn-primary btn-sm" target="_blank">
+                                                            <i class="fas fa-download me-1"></i> Download
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i> No correspondence available.
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                <div class="tab-pane fade" id="evidence" role="tabpanel" aria-labelledby="evidence-tab">
+                    {% with evidence=documents|dictsortreversed:"document_type"|dictsort:"document_type" %}
+                        {% if evidence %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead style="background-color: var(--primary-color); color: white;">
+                                        <tr>
+                                            <th>Document Title</th>
+                                            <th>Type</th>
+                                            <th>Case</th>
+                                            <th>Uploaded</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for doc in evidence %}
+                                            {% if doc.document_type in 'EVIDENCE,EXHIBIT,PHOTO,REPORT' %}
+                                                <tr>
+                                                    <td>{{ doc.title }}</td>
+                                                    <td>{{ doc.get_document_type_display }}</td>
+                                                    <td>
+                                                        <a href="{% url 'portal:case_detail' doc.case.id %}">
+                                                            {{ doc.case.title }}
+                                                        </a>
+                                                    </td>
+                                                    <td>{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                                                    <td>
+                                                        <a href="{{ doc.file.url }}" class="btn btn-primary btn-sm" target="_blank">
+                                                            <i class="fas fa-download me-1"></i> Download
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info text-center">
+                                <i class="fas fa-info-circle me-2"></i> No evidence documents available.
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Document Information</h5>
+                </div>
+                <div class="card-body">
+                    <p>This page provides access to all documents related to your cases. Please note:</p>
+                    <ul>
+                        <li>All documents are securely stored and encrypted</li>
+                        <li>Documents can be downloaded for your reference</li>
+                        <li>You can filter documents by type using the tabs above</li>
+                        <li>If you need a document that is not available here, please contact your legal team</li>
+                    </ul>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i> These documents are confidential and should be handled securely.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -24,6 +24,15 @@ DEFAULT_EMBEDDING_ENDPOINT = getattr(settings, 'DEFAULT_EMBEDDING_ENDPOINT', 'ht
 # Fallback and error handling
 USE_MOCK_FALLBACK = getattr(settings, 'USE_MOCK_FALLBACK', True)
 MAX_RETRY_ATTEMPTS = getattr(settings, 'MAX_RETRY_ATTEMPTS', 3)
+RETRY_INITIAL_DELAY = getattr(settings, 'RETRY_INITIAL_DELAY', 1.0)
+RETRY_MAX_DELAY = getattr(settings, 'RETRY_MAX_DELAY', 10.0)
+RETRY_BACKOFF_FACTOR = getattr(settings, 'RETRY_BACKOFF_FACTOR', 2.0)
+RETRY_JITTER = getattr(settings, 'RETRY_JITTER', True)
+
+# Service monitoring
+ENABLE_SERVICE_MONITORING = getattr(settings, 'ENABLE_SERVICE_MONITORING', True)
+SERVICE_HEALTH_CACHE_EXPIRY = getattr(settings, 'SERVICE_HEALTH_CACHE_EXPIRY', 300)  # 5 minutes
+SERVICE_HEALTH_CHECK_INTERVAL = getattr(settings, 'SERVICE_HEALTH_CHECK_INTERVAL', 60)  # 1 minute
 
 # Request settings
 LLM_REQUEST_TIMEOUT = getattr(settings, 'LLM_REQUEST_TIMEOUT', 60)
@@ -92,6 +101,8 @@ def load_settings():
     """
     global DEFAULT_MODEL_NAME, DEFAULT_LLM_ENDPOINT, DEFAULT_SYSTEM_PROMPT
     global ENABLE_VECTOR_SEARCH, ENABLE_DOCUMENT_GENERATION, ENABLE_LEGAL_RESEARCH
+    global MAX_RETRY_ATTEMPTS, RETRY_INITIAL_DELAY, RETRY_MAX_DELAY, RETRY_BACKOFF_FACTOR
+    global ENABLE_SERVICE_MONITORING
 
     try:
         # Only try to load settings if the database is available
@@ -113,6 +124,26 @@ def load_settings():
             enable_legal_research = get_setting('ENABLE_LEGAL_RESEARCH')
             if enable_legal_research is not None:
                 ENABLE_LEGAL_RESEARCH = enable_legal_research.lower() == 'true'
+
+            # Retry settings
+            max_retry_attempts = get_setting('MAX_RETRY_ATTEMPTS')
+            if max_retry_attempts is not None:
+                try:
+                    MAX_RETRY_ATTEMPTS = int(max_retry_attempts)
+                except ValueError:
+                    pass
+
+            retry_initial_delay = get_setting('RETRY_INITIAL_DELAY')
+            if retry_initial_delay is not None:
+                try:
+                    RETRY_INITIAL_DELAY = float(retry_initial_delay)
+                except ValueError:
+                    pass
+
+            # Service monitoring
+            enable_service_monitoring = get_setting('ENABLE_SERVICE_MONITORING')
+            if enable_service_monitoring is not None:
+                ENABLE_SERVICE_MONITORING = enable_service_monitoring.lower() == 'true'
     except:
         # If there's any error, just use the default settings
         pass

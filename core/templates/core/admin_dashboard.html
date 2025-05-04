@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="page-title">Administrator Dashboard</h1>
+            <p class="text-muted">Manage system settings, users, and monitor system activity.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <div class="d-flex align-items-center justify-content-end">
+                <div class="me-3">
+                    <h5 class="mb-0">{{ user.get_full_name }}</h5>
+                    <small class="text-muted">Administrator</small>
+                </div>
+                <div class="avatar">
+                    <i class="fas fa-user-shield fa-3x text-primary"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>System Overview</h5>
+                    <span class="badge bg-accent">Today</span>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-4 mb-2" style="color: var(--primary-color);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3 class="mb-0">{{ user_count }}</h3>
+                            <p class="text-muted">Total Users</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-4 mb-2" style="color: var(--primary-color);">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <h3 class="mb-0">{{ case_count|default:"--" }}</h3>
+                            <p class="text-muted">Active Cases</p>
+                        </div>
+                        <div class="col-md-4 text-center mb-3">
+                            <div class="display-4 mb-2" style="color: var(--primary-color);">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <h3 class="mb-0">{{ document_count|default:"--" }}</h3>
+                            <p class="text-muted">Documents</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>System Status</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-center mb-2">{{ now|date:"l, F j, Y" }}</p>
+                    <div class="alert alert-success mb-0">
+                        <i class="fas fa-check-circle me-2"></i>All systems operational
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-user-cog me-2"></i>User Management</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="display-4 me-3" style="color: var(--primary-color);">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">Manage Users</h3>
+                            <p class="text-muted mb-0">Create, edit, and manage user accounts</p>
+                        </div>
+                    </div>
+                    <div class="list-group mb-3">
+                        <a href="/admin/accounts/user/" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-user me-2"></i>All Users
+                            </div>
+                            <span class="badge bg-primary rounded-pill">{{ user_count }}</span>
+                        </a>
+                        <a href="/admin/accounts/user/add/" class="list-group-item list-group-item-action">
+                            <i class="fas fa-user-plus me-2"></i>Add New User
+                        </a>
+                        <a href="/admin/auth/group/" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users me-2"></i>User Groups
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-shield-alt me-2"></i>Security & Audit</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="display-4 me-3" style="color: var(--primary-color);">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <div>
+                            <h3 class="mb-0">System Security</h3>
+                            <p class="text-muted mb-0">Monitor system activity and security</p>
+                        </div>
+                    </div>
+                    <div class="list-group mb-3">
+                        <a href="{% url 'core:audit_log' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-history me-2"></i>Audit Logs
+                        </a>
+                        <a href="/admin/accounts/mfasetup/" class="list-group-item list-group-item-action">
+                            <i class="fas fa-key me-2"></i>MFA Settings
+                        </a>
+                        <a href="/admin/portal/portalaccess/" class="list-group-item list-group-item-action">
+                            <i class="fas fa-door-open me-2"></i>Portal Access
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>IP Address</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for log in recent_audit_logs %}
+                                <tr>
+                                    <td>{{ log.user.username }}</td>
+                                    <td>{{ log.action }}</td>
+                                    <td>{{ log.ip_address }}</td>
+                                    <td>{{ log.timestamp|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">No recent activity</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-end mt-3">
+                        <a href="{% url 'core:audit_log' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-list me-2"></i>View All Logs
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

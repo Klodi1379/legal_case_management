@@ -5,6 +5,7 @@ from cases.models import Case
 import os
 from django.utils import timezone
 import uuid
+from core.fields import EncryptedFileField
 
 class DocumentCategory(models.Model):
     """
@@ -204,7 +205,135 @@ class DocumentTemplate(models.Model):
     def __str__(self):
         return self.name
 
+
+class SensitiveDocument(models.Model):
+    """
+    Encrypted document model for highly sensitive legal documents.
+
+    This model uses encryption for the file content to ensure that
+    sensitive documents are protected at rest.
+    """
+    SENSITIVITY_CHOICES = [
+        ('CONFIDENTIAL', 'Confidential'),
+        ('PRIVILEGED', 'Privileged'),
+        ('RESTRICTED', 'Restricted'),
+        ('TOP_SECRET', 'Top Secret'),
+    ]
+
+    # Basic document information
+    title = models.CharField(_('Title'), max_length=255)
+    document_type = models.CharField(_('Document Type'), max_length=20, choices=Document.DOCUMENT_TYPE_CHOICES, default='OTHER')
+    sensitivity_level = models.CharField(_('Sensitivity Level'), max_length=20, choices=SENSITIVITY_CHOICES, default='CONFIDENTIAL')
+    description = models.TextField(_('Description'), blank=True)
+
+    # Encrypted file
+    encryption_salt = models.BinaryField(_('Encryption Salt'), null=True, editable=False)
+    file = EncryptedFileField(
+        _('Encrypted File'),
+        upload_to='encrypted_documents/',
+        salt_field='encryption_salt'
+    )
+    file_size = models.BigIntegerField(_('File Size'), null=True, blank=True, editable=False)
+    file_type = models.CharField(_('File Type'), max_length=50, blank=True, editable=False)
+
+    # Relationships
+    case = models.ForeignKey(Case, on_delete=models.CASCADE, related_name='sensitive_documents', verbose_name=_('Case'))
+    parent_document = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True,
+                                       related_name='sensitive_versions', verbose_name=_('Parent Document'))
+
+    # Metadata
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                   related_name='uploaded_sensitive_documents', verbose_name=_('Uploaded By'))
+    uploaded_at = models.DateTimeField(_('Uploaded At'), auto_now_add=True)
+    modified_at = models.DateTimeField(_('Modified At'), auto_now=True)
+
+    # Access control
+    authorized_users = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name='accessible_sensitive_documents',
+        verbose_name=_('Authorized Users'),
+        blank=True
+    )
+
+    # Versioning
+    version = models.PositiveIntegerField(_('Version'), default=1)
+    is_latest_version = models.BooleanField(_('Latest Version'), default=True)
+    previous_version = models.ForeignKey('self', on_delete=models.SET_NULL, null=True, blank=True,
+                                        related_name='newer_version', verbose_name=_('Previous Version'))
+
+    def __str__(self):
+        return f"{self.title} (SENSITIVE)"
+
+    def save(self, *args, **kwargs):
+        # Set file size and type
+        if self.file and hasattr(self.file, 'size'):
+            self.file_size = self.file.size
+            self.file_type = os.path.splitext(self.file.name)[1].lower()
+
+        # If this is a new version of an existing document
+        if self.previous_version and self.is_latest_version:
+            # Mark the previous version as not the latest
+            self.previous_version.is_latest_version = False
+            self.previous_version.save()
+
+        super().save(*args, **kwargs)
+
+    def get_file_size_display(self):
+        """Return human-readable file size."""
+        if not self.file_size:
+            return "0 B"
+
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if self.file_size < 1024.0:
+                return f"{self.file_size:.1f} {unit}"
+            self.file_size /= 1024.0
+        return f"{self.file_size:.1f} TB"
+
+    def get_file_extension(self):
+        """Return the file extension."""
+        if self.file:
+            return os.path.splitext(self.file.name)[1].lower()
+        return ""
+
+    def create_new_version(self, new_file, uploaded_by):
+        """Create a new version of this document."""
+        # Increment version number
+        new_version_num = self.version + 1
+
+        # Create new document instance
+        new_doc = SensitiveDocument(
+            title=self.title,
+            document_type=self.document_type,
+            sensitivity_level=self.sensitivity_level,
+            description=self.description,
+            file=new_file,
+            case=self.case,
+            parent_document=self.parent_document,
+            uploaded_by=uploaded_by,
+            version=new_version_num,
+            is_latest_version=True,
+            previous_version=self
+        )
+
+        # Save the new version
+        new_doc.save()
+
+        # Copy authorized users
+        for user in self.authorized_users.all():
+            new_doc.authorized_users.add(user)
+
+        return new_doc
+
     class Meta:
-        verbose_name = _('Document Template')
-        verbose_name_plural = _('Document Templates')
-        ordering = ['name']
+        verbose_name = _('Sensitive Document')
+        verbose_name_plural = _('Sensitive Documents')
+        ordering = ['-uploaded_at']
+        indexes = [
+            models.Index(fields=['case', '-uploaded_at']),
+            models.Index(fields=['sensitivity_level']),
+        ]
+        permissions = [
+            ('view_any_sensitive_document', 'Can view any sensitive document'),
+            ('upload_sensitive_document', 'Can upload sensitive documents'),
+        ]
+

@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Task: {{ task.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="page-title">Task: {{ task.title }}</h1>
+        <div>
+            <a href="{% url 'workflows:instance_detail' task.workflow_instance.id %}" class="btn btn-outline-primary me-2">
+                <i class="fas fa-project-diagram me-2"></i>View Workflow
+            </a>
+            <a href="{% url 'workflows:task_list' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to Tasks
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Task Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Status:</div>
+                        <div class="col-md-8">
+                            {% if task.status == 'PENDING' %}
+                                <span class="badge bg-warning">Pending</span>
+                            {% elif task.status == 'IN_PROGRESS' %}
+                                <span class="badge bg-info">In Progress</span>
+                            {% elif task.status == 'COMPLETED' %}
+                                <span class="badge bg-success">Completed</span>
+                            {% elif task.status == 'CANCELED' %}
+                                <span class="badge bg-danger">Canceled</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Priority:</div>
+                        <div class="col-md-8">
+                            {% if task.priority == 1 %}
+                                <span class="text-muted">Low</span>
+                            {% elif task.priority == 2 %}
+                                <span>Normal</span>
+                            {% elif task.priority == 3 %}
+                                <span class="text-primary fw-bold">High</span>
+                            {% elif task.priority == 4 %}
+                                <span class="text-danger fw-bold">Urgent</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Workflow:</div>
+                        <div class="col-md-8">{{ task.workflow_instance.template.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Step:</div>
+                        <div class="col-md-8">{{ task.step.name }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Assigned To:</div>
+                        <div class="col-md-8">{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Created By:</div>
+                        <div class="col-md-8">{{ task.created_by.get_full_name|default:task.created_by.username }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Created At:</div>
+                        <div class="col-md-8">{{ task.created_at|date:"F j, Y, g:i a" }}</div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Due Date:</div>
+                        <div class="col-md-8">{{ task.due_date|date:"F j, Y"|default:"No due date" }}</div>
+                    </div>
+                    {% if task.completed_at %}
+                    <div class="row mb-3">
+                        <div class="col-md-4 fw-bold">Completed At:</div>
+                        <div class="col-md-8">{{ task.completed_at|date:"F j, Y, g:i a" }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-align-left me-2"></i>Description</h5>
+                </div>
+                <div class="card-body">
+                    {% if task.description %}
+                        <p>{{ task.description|linebreaks }}</p>
+                    {% else %}
+                        <p class="text-muted">No description provided.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-play me-2"></i>Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if task.status == 'PENDING' or task.status == 'IN_PROGRESS' %}
+                        {% if task.status == 'PENDING' %}
+                            <form method="post" action="{% url 'workflows:task_detail' task.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="start">
+                                <button type="submit" class="btn btn-primary mb-3 w-100">
+                                    <i class="fas fa-play me-2"></i>Start Working
+                                </button>
+                            </form>
+                        {% endif %}
+                        
+                        <button type="button" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#completeTaskModal">
+                            <i class="fas fa-check me-2"></i>Complete Task
+                        </button>
+                        
+                        <!-- Complete Task Modal -->
+                        <div class="modal fade" id="completeTaskModal" tabindex="-1" aria-labelledby="completeTaskModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="completeTaskModalLabel">Complete Task</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <form method="post" action="{% url 'workflows:task_detail' task.id %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="complete">
+                                        <div class="modal-body">
+                                            <p>Are you sure you want to mark this task as completed?</p>
+                                            <div class="mb-3">
+                                                <label for="notes" class="form-label">Completion Notes (optional)</label>
+                                                <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                            <button type="submit" class="btn btn-success">Complete Task</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            This task is {{ task.get_status_display|lower }} and cannot be updated.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Set Up Two-Factor Authentication{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Set Up Two-Factor Authentication</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Two-factor authentication adds an extra layer of security to your account. After entering your password, you'll need to provide a verification code from your authenticator app.
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <h5>Step 1: Scan QR Code</h5>
+                        <p>Scan this QR code with your authenticator app (like Google Authenticator, Authy, or Microsoft Authenticator).</p>
+                        <div class="text-center mb-3">
+                            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid border p-2" style="max-width: 200px;">
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Step 2: Manual Setup</h5>
+                        <p>If you can't scan the QR code, enter this key manually in your authenticator app:</p>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" value="{{ secret_key }}" readonly>
+                            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard('{{ secret_key }}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <p class="small text-muted">
+                            <i class="fas fa-shield-alt me-1"></i>
+                            Account name: {{ request.user.email }}<br>
+                            Issuer: Legal Case Management
+                        </p>
+                    </div>
+                </div>
+                
+                <h5>Step 3: Verify Setup</h5>
+                <p>Enter the 6-digit verification code from your authenticator app to complete the setup:</p>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        {{ form.non_field_errors }}
+                        {{ form.verification_code.label_tag }}
+                        {{ form.verification_code }}
+                        {% for error in form.verification_code.errors %}
+                        <div class="text-danger">{{ error }}</div>
+                        {% endfor %}
+                        <div class="form-text">{{ form.verification_code.help_text }}</div>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Verify and Enable</button>
+                        <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(function() {
+        alert('Secret key copied to clipboard');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+    });
+}
+</script>
+{% endblock %}

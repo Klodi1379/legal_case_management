@@ -7,23 +7,103 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-8">
-        <h2 class="text-center">Profile</h2>
-        <form method="post" class="mt-4">
-            {% csrf_token %}
-            <div class="mb-3">
-                {{ form.non_field_errors }}
-            </div>
-            {% for field in form %}
-            <div class="mb-3">
-                {{ field.label_tag }}
-                {{ field }}
-                {% for error in field.errors %}
-                <div class="text-danger">{{ error }}</div>
-                {% endfor %}
+        <h2 class="text-center mb-4">Profile</h2>
+
+        {% if messages %}
+        <div class="mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
             </div>
             {% endfor %}
-            <button type="submit" class="btn btn-primary w-100">Update Profile</button>
-        </form>
+        </div>
+        {% endif %}
+
+        <div class="row">
+            <!-- Profile Information -->
+            <div class="col-md-8">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Profile Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" class="mt-2">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                {{ form.non_field_errors }}
+                            </div>
+                            {% for field in form %}
+                            <div class="mb-3">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                            <button type="submit" class="btn btn-primary w-100">Update Profile</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="col-md-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Security</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <h6>Password</h6>
+                            <p class="small text-muted">Change your account password</p>
+                            <a href="{% url 'accounts:password_change' %}" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="fas fa-key me-1"></i> Change Password
+                            </a>
+                        </div>
+
+                        <hr>
+
+                        <div class="mb-3">
+                            <h6>Two-Factor Authentication</h6>
+                            <p class="small text-muted">Add an extra layer of security to your account</p>
+
+                            {% if mfa_enabled %}
+                            <div class="d-grid gap-2">
+                                <div class="alert alert-success py-2">
+                                    <i class="fas fa-shield-alt me-1"></i> Enabled
+                                </div>
+                                <a href="{% url 'accounts:mfa_backup_codes' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-key me-1"></i> Generate New Backup Codes
+                                </a>
+                                <a href="{% url 'accounts:mfa_disable' %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-times me-1"></i> Disable
+                                </a>
+                            </div>
+                            {% elif has_mfa %}
+                            <div class="d-grid gap-2">
+                                <div class="alert alert-warning py-2">
+                                    <i class="fas fa-exclamation-triangle me-1"></i> Set up but not enabled
+                                </div>
+                                <a href="{% url 'accounts:mfa_setup' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-shield-alt me-1"></i> Enable
+                                </a>
+                            </div>
+                            {% else %}
+                            <div class="d-grid gap-2">
+                                <div class="alert alert-secondary py-2">
+                                    <i class="fas fa-times-circle me-1"></i> Not enabled
+                                </div>
+                                <a href="{% url 'accounts:mfa_setup' %}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-shield-alt me-1"></i> Set Up
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     "portal",
     "core",
     "ai_services",
-
+    "secure_clients",
 ]
 
 MIDDLEWARE = [
@@ -61,6 +61,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Custom middleware
+    "core.middleware.AuditLogMiddleware",
 ]
 
 ROOT_URLCONF = "legal_case_management.urls"
@@ -141,3 +143,23 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# Authentication backends
+AUTHENTICATION_BACKENDS = [
+    'accounts.auth.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
+
+# Login URL
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'core:role_based_redirect'
+
+# Document encryption settings
+# In production, this should be stored securely (e.g., environment variable)
+# Generate with: python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+ENCRYPTION_KEY = "SCTLZTyFPe7C7WU4oqf1izZkKOodDeDzL_uMQcuiUbM="
+
+# AI Services settings
+ENABLE_AI_FEATURES = True
+DEFAULT_LLM_MODEL = 'gemma-3-12b-it-qat'
+DEFAULT_LLM_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions'

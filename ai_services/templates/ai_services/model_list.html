@@ -31,8 +31,13 @@
                 </thead>
                 <tbody>
                     {% for model in models %}
-                    <tr>
-                        <td>{{ model.name }}</td>
+                    <tr {% if model.model_version == '3-12b-it-qat' and model.is_active %}class="table-success"{% endif %}>
+                        <td>
+                            {{ model.name }}
+                            {% if model.model_version == '3-12b-it-qat' and model.is_active %}
+                            <span class="badge rounded-pill" style="background-color: var(--accent-color); color: var(--primary-color);">Default</span>
+                            {% endif %}
+                        </td>
                         <td>{{ model.get_model_type_display }}</td>
                         <td>{{ model.model_version }}</td>
                         <td>{{ model.get_deployment_type_display }}</td>

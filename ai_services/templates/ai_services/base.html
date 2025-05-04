@@ -66,6 +66,12 @@
                             Vector Stores
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'service_health' %}active{% endif %}" href="{% url 'ai_services:service_health' %}">
+                            <i class="fas fa-heartbeat me-2"></i>
+                            Service Health
+                        </a>
+                    </li>
                 </ul>
                 {% endif %}
             </div>

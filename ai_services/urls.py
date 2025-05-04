@@ -1,6 +1,7 @@
 # ai_services/urls.py
 from django.urls import path
 from . import views
+from . import views_admin
 
 app_name = 'ai_services'
 
@@ -40,4 +41,9 @@ urlpatterns = [
     path('vector-stores/create/', views.vector_store_create, name='vector_store_create'),
     path('vector-stores/<int:store_id>/edit/', views.vector_store_edit, name='vector_store_edit'),
     path('vector-stores/<int:store_id>/delete/', views.vector_store_delete, name='vector_store_delete'),
+
+    # Service Health Monitoring
+    path('admin/service-health/', views_admin.service_health_dashboard, name='service_health'),
+    path('admin/service-health/api/', views_admin.service_health_api, name='service_health_api'),
+    path('admin/test-connection/<int:model_id>/', views_admin.test_service_connection, name='test_service_connection'),
 ]

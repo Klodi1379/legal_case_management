@@ -1,0 +1,255 @@
+{% extends 'ai_services/base.html' %}
+{% load static %}
+{% load ai_service_tags %}
+
+{% block page_title %}AI Service Health{% endblock %}
+
+{% block page_actions %}
+<button id="refreshBtn" class="btn btn-sm btn-outline-primary">
+    <i class="fas fa-sync-alt me-1"></i> Refresh
+</button>
+{% endblock %}
+
+{% block ai_content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-heartbeat me-2"></i>Service Health Overview</h5>
+                <span class="text-muted small">Last updated: <span id="lastUpdated">{{ last_updated|date:"F j, Y, g:i a" }}</span></span>
+            </div>
+            <div class="card-body">
+                <div class="row" id="serviceStatusCards">
+                    {% for service_name, health in services_health.items %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100 {% if health.status == 'healthy' %}border-success{% elif health.status == 'degraded' %}border-warning{% else %}border-danger{% endif %}">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    {% if health.status == 'healthy' %}
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    {% elif health.status == 'degraded' %}
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    {% else %}
+                                    <i class="fas fa-times-circle text-danger me-2"></i>
+                                    {% endif %}
+                                    {{ service_name }}
+                                </h5>
+                                <div class="mt-3">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Status:</span>
+                                        <span class="fw-bold {% if health.status == 'healthy' %}text-success{% elif health.status == 'degraded' %}text-warning{% else %}text-danger{% endif %}">
+                                            {{ health.status|title }}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Success Rate:</span>
+                                        <span class="fw-bold">
+                                            {% if health.total_calls > 0 %}
+                                            {{ health.successful_calls|floatformat:0 }}/{{ health.total_calls }} ({{ health.successful_calls|floatformat:0|default:0|divisor:health.total_calls|floatformat:1 }}%)
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Avg Response Time:</span>
+                                        <span class="fw-bold">
+                                            {% with perf=performance_metrics|get:service_name %}
+                                            {% if perf.avg_response_time > 0 %}
+                                            {{ perf.avg_response_time|floatformat:2 }}s
+                                            {% else %}
+                                            N/A
+                                            {% endif %}
+                                            {% endwith %}
+                                        </span>
+                                    </div>
+                                    {% if health.last_error %}
+                                    <div class="mt-3">
+                                        <div class="text-danger">
+                                            <strong>Last Error:</strong> {{ health.last_error.type }}
+                                            <div class="small text-muted">{{ health.last_error.timestamp|date:"F j, Y, g:i a" }}</div>
+                                            <div class="small">{{ health.last_error.message|truncatechars:100 }}</div>
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No service health data available yet. Service health metrics will appear after services are used.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-brain me-2"></i>LLM Models</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Endpoint</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for model in llm_models %}
+                            <tr>
+                                <td>{{ model.name }}</td>
+                                <td>{{ model.get_model_type_display }} ({{ model.model_version }})</td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 250px;" title="{{ model.endpoint_url }}">
+                                        {{ model.endpoint_url }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="status-indicator" data-model-id="{{ model.id }}">
+                                        <i class="fas fa-circle-notch fa-spin text-muted"></i>
+                                        Unknown
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary test-connection-btn" data-model-id="{{ model.id }}">
+                                        <i class="fas fa-plug me-1"></i> Test Connection
+                                    </button>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No LLM models configured</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-database me-2"></i>Vector Stores</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Connection</th>
+                                <th>Embedding Model</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for store in vector_stores %}
+                            <tr>
+                                <td>{{ store.name }}</td>
+                                <td>{{ store.get_store_type_display }}</td>
+                                <td>
+                                    <span class="text-truncate d-inline-block" style="max-width: 250px;" title="{{ store.connection_string }}">
+                                        {{ store.connection_string }}
+                                    </span>
+                                </td>
+                                <td>{{ store.embedding_model }}</td>
+                                <td>
+                                    {% if store.is_active %}
+                                    <span class="badge bg-success">Active</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center">No vector stores configured</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Test connection buttons
+        const testButtons = document.querySelectorAll('.test-connection-btn');
+        testButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const modelId = this.getAttribute('data-model-id');
+                const statusIndicator = document.querySelector(`.status-indicator[data-model-id="${modelId}"]`);
+
+                // Update button state
+                this.disabled = true;
+                this.innerHTML = '<i class="fas fa-circle-notch fa-spin me-1"></i> Testing...';
+
+                // Update status indicator
+                statusIndicator.innerHTML = '<i class="fas fa-circle-notch fa-spin text-muted"></i> Testing...';
+
+                // Make API request to test connection
+                fetch(`/ai/admin/test-connection/${modelId}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Update button state
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-plug me-1"></i> Test Connection';
+
+                        // Update status indicator
+                        if (data.success) {
+                            statusIndicator.innerHTML = '<i class="fas fa-check-circle text-success"></i> Connected';
+                            statusIndicator.title = `Response time: ${data.processing_time}`;
+                        } else {
+                            statusIndicator.innerHTML = '<i class="fas fa-times-circle text-danger"></i> Failed';
+                            statusIndicator.title = data.message;
+                        }
+                    })
+                    .catch(error => {
+                        // Update button state
+                        this.disabled = false;
+                        this.innerHTML = '<i class="fas fa-plug me-1"></i> Test Connection';
+
+                        // Update status indicator
+                        statusIndicator.innerHTML = '<i class="fas fa-exclamation-triangle text-warning"></i> Error';
+                        statusIndicator.title = 'Error testing connection';
+
+                        console.error('Error testing connection:', error);
+                    });
+            });
+        });
+
+        // Refresh button
+        const refreshBtn = document.getElementById('refreshBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function() {
+                location.reload();
+            });
+        }
+    });
+</script>
+{% endblock %}

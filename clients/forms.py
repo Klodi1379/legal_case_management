@@ -1,10 +1,8 @@
 
 # clients/forms.py
 from django import forms
-from .models import Client
+from .models import Client, ClientContact
+from secure_clients.forms import CombinedClientForm
 
-class ClientForm(forms.ModelForm):
-    class Meta:
-        model = Client
-        fields = ['company_name','industry', 'notes']
-        
+# Use the CombinedClientForm from secure_clients app
+ClientForm = CombinedClientForm

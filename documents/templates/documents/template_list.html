@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% load document_extras %}
+
+{% block title %}Document Templates{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="page-title">Document Templates</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <p class="text-muted">Manage your document templates for efficient document generation.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'documents:template_upload' %}" class="btn btn-primary">
+                <i class="fas fa-plus-circle me-2"></i>Upload New Template
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-file-signature me-2"></i>Template Library</h5>
+                    <div>
+                        <form method="get" class="d-flex">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" placeholder="Search templates..." value="{{ search_query|default:'' }}">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if page_obj %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" style="width: 40%;">Template</th>
+                                        <th scope="col" style="width: 15%;">Type</th>
+                                        <th scope="col" style="width: 15%;">Created By</th>
+                                        <th scope="col" style="width: 15%;">Date</th>
+                                        <th scope="col" style="width: 15%;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for template in page_obj %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3" style="color: var(--accent-color);">
+                                                        <i class="fas {{ template.file.name|get_file_icon }} fa-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <a href="{% url 'documents:template_detail' template.id %}" class="fw-bold text-decoration-none">{{ template.name }}</a>
+                                                        <div class="text-muted small">{{ template.description|truncatechars:60 }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ template.get_document_type_display }}</td>
+                                            <td>{{ template.created_by.get_full_name }}</td>
+                                            <td>{{ template.created_at|date:"M d, Y" }}</td>
+                                            <td>
+                                                <div class="btn-group">
+                                                    <a href="{% url 'documents:template_download' template.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Download">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    <a href="{% url 'documents:template_detail' template.id %}" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="View Details">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{% url 'documents:template_delete' template.id %}" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {% if page_obj.has_other_pages %}
+                            <div class="pagination justify-content-center py-3">
+                                <ul class="pagination">
+                                    {% if page_obj.has_previous %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}" aria-label="First">
+                                                <span aria-hidden="true">&laquo;&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+
+                                    {% for num in page_obj.paginator.page_range %}
+                                        {% if page_obj.number == num %}
+                                            <li class="page-item active"><a class="page-link" href="#">{{ num }}</a></li>
+                                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                            <li class="page-item">
+                                                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}">{{ num }}</a>
+                                            </li>
+                                        {% endif %}
+                                    {% endfor %}
+
+                                    {% if page_obj.has_next %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if current_type %}&type={{ current_type }}{% endif %}" aria-label="Last">
+                                                <span aria-hidden="true">&raquo;&raquo;</span>
+                                            </a>
+                                        </li>
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <div class="mb-3" style="color: var(--accent-color);">
+                                <i class="fas fa-file-signature fa-4x"></i>
+                            </div>
+                            <h5>No templates found</h5>
+                            <p class="text-muted">
+                                {% if search_query %}
+                                    No templates match your search criteria.
+                                {% elif current_type %}
+                                    No templates found for this document type.
+                                {% else %}
+                                    You haven't uploaded any document templates yet.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'documents:template_upload' %}" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-2"></i>Upload Your First Template
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter me-2"></i>Filter Templates</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Document Type</label>
+                        <div class="list-group">
+                            <a href="{% url 'documents:template_list' %}{% if search_query %}?search={{ search_query }}{% endif %}"
+                               class="list-group-item list-group-item-action {% if not current_type %}active{% endif %}">
+                                All Types
+                            </a>
+                            {% for doc_type in document_types %}
+                                <a href="?type={{ doc_type }}{% if search_query %}&search={{ search_query }}{% endif %}"
+                                   class="list-group-item list-group-item-action {% if current_type == doc_type %}active{% endif %}">
+                                    {{ doc_type|default:"Unknown" }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Template Tips</h5>
+                </div>
+                <div class="card-body">
+                    <p>Document templates help streamline your workflow by providing standardized formats for common legal documents.</p>
+
+                    <div class="alert alert-info">
+                        <h6>Benefits of Templates</h6>
+                        <ul class="mb-0">
+                            <li>Save time on repetitive documents</li>
+                            <li>Ensure consistency across your practice</li>
+                            <li>Reduce errors in document preparation</li>
+                            <li>Improve client service with faster turnaround</li>
+                        </ul>
+                    </div>
+
+                    <p class="mb-0 mt-3">Templates can be used with our AI document generation system for even faster document creation.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+    });
+</script>
+{% endblock %}
