@@ -4,23 +4,25 @@
 
 {% block content %}
 <div class="container mt-4">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="page-title">Welcome to Your Client Portal</h1>
-            <p class="text-muted">Your secure gateway to case information, documents, and communication with your legal team.</p>
-        </div>
-        <div class="col-md-4 text-end">
-            {% if client %}
-            <div class="d-flex align-items-center justify-content-end">
-                <div class="me-3">
-                    <h5 class="mb-0">{{ client.user.get_full_name }}</h5>
-                    <small class="text-muted">{{ client.company_name|default:"" }}</small>
-                </div>
-                <div class="avatar bg-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                    <i class="fas fa-user fa-2x text-white"></i>
-                </div>
+    <div class="dashboard-header">
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <h1 class="dashboard-title">Welcome to Your Client Portal</h1>
+                <p class="dashboard-subtitle">Your secure gateway to case information, documents, and communication with your legal team.</p>
             </div>
-            {% endif %}
+            <div class="col-md-4 text-end">
+                {% if client %}
+                <div class="d-flex align-items-center justify-content-end">
+                    <div class="me-3">
+                        <h5 class="mb-0">{{ client.user.get_full_name }}</h5>
+                        <small class="text-muted">{{ client.company_name|default:"" }}</small>
+                    </div>
+                    <div class="avatar">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -48,46 +50,46 @@
     <!-- Case Statistics -->
     <div class="row mb-4">
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 mb-2" style="color: var(--primary-color);">
+            <div class="card h-100 hover-effect">
+                <div class="card-body stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-briefcase"></i>
                     </div>
-                    <h3 class="mb-0">{{ cases.count }}</h3>
-                    <p class="text-muted">Total Cases</p>
+                    <div class="stat-value">{{ cases.count }}</div>
+                    <div class="stat-label">Total Cases</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 mb-2" style="color: var(--primary-color);">
+            <div class="card h-100 hover-effect">
+                <div class="card-body stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-file-alt"></i>
                     </div>
-                    <h3 class="mb-0">{{ documents|length }}</h3>
-                    <p class="text-muted">Documents</p>
+                    <div class="stat-value">{{ documents|length }}</div>
+                    <div class="stat-label">Documents</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 mb-2" style="color: var(--primary-color);">
+            <div class="card h-100 hover-effect">
+                <div class="card-body stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-tasks"></i>
                     </div>
-                    <h3 class="mb-0">{{ tasks|length }}</h3>
-                    <p class="text-muted">Pending Tasks</p>
+                    <div class="stat-value">{{ tasks|length }}</div>
+                    <div class="stat-label">Pending Tasks</div>
                 </div>
             </div>
         </div>
         <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body text-center">
-                    <div class="display-4 mb-2" style="color: var(--primary-color);">
+            <div class="card h-100 hover-effect">
+                <div class="card-body stat-card">
+                    <div class="stat-icon">
                         <i class="fas fa-envelope"></i>
                     </div>
-                    <h3 class="mb-0">{{ unread_messages }}</h3>
-                    <p class="text-muted">Unread Messages</p>
+                    <div class="stat-value">{{ unread_messages }}</div>
+                    <div class="stat-label">Unread Messages</div>
                 </div>
             </div>
         </div>
@@ -96,10 +98,10 @@
     <div class="row mb-4">
         <div class="col-md-8">
             <!-- Case Status Overview -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center bg-white">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-balance-scale me-2"></i>Your Cases</h5>
-                    <a href="{% url 'portal:cases' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'portal:cases' %}" class="btn btn-sm btn-outline-accent">View All</a>
                 </div>
                 <div class="card-body">
                     {% if cases %}
@@ -122,18 +124,18 @@
                                         </td>
                                         <td>
                                             {% if case.status == 'OPEN' %}
-                                                <span class="badge bg-success">Active</span>
+                                                <span class="badge badge-open">Active</span>
                                             {% elif case.status == 'CLOSED' %}
-                                                <span class="badge bg-secondary">Closed</span>
+                                                <span class="badge badge-pending">Closed</span>
                                             {% elif case.status == 'PENDING' %}
-                                                <span class="badge bg-warning">Pending</span>
+                                                <span class="badge badge-in-progress">Pending</span>
                                             {% else %}
-                                                <span class="badge bg-info">{{ case.status }}</span>
+                                                <span class="badge badge-open">{{ case.status }}</span>
                                             {% endif %}
                                         </td>
                                         <td>{{ case.updated_at|date:"M d, Y" }}</td>
                                         <td>
-                                            <a href="{% url 'portal:case_detail' case.id %}" class="btn btn-sm btn-primary">
+                                            <a href="{% url 'portal:case_detail' case.id %}" class="btn btn-sm btn-accent">
                                                 <i class="fas fa-eye me-1"></i> View
                                             </a>
                                         </td>
@@ -151,32 +153,32 @@
             </div>
 
             <!-- Recent Documents -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header d-flex justify-content-between align-items-center bg-white">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>Recent Documents</h5>
-                    <a href="{% url 'portal:documents' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'portal:documents' %}" class="btn btn-sm btn-outline-accent">View All</a>
                 </div>
                 <div class="card-body">
                     {% if documents %}
                         <div class="row">
                             {% for doc in documents|slice:":6" %}
                                 <div class="col-md-6 mb-3">
-                                    <div class="card h-100 border-0 shadow-sm">
+                                    <div class="card h-100 document-card">
                                         <div class="card-body">
                                             <div class="d-flex align-items-center mb-2">
-                                                <div class="me-3">
+                                                <div class="me-3 document-icon">
                                                     {% if doc.file_type == 'PDF' %}
-                                                        <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                                                        <i class="fas fa-file-pdf text-danger"></i>
                                                     {% elif doc.file_type == 'DOCX' or doc.file_type == 'DOC' %}
-                                                        <i class="fas fa-file-word fa-2x text-primary"></i>
+                                                        <i class="fas fa-file-word text-primary"></i>
                                                     {% elif doc.file_type == 'XLSX' or doc.file_type == 'XLS' %}
-                                                        <i class="fas fa-file-excel fa-2x text-success"></i>
+                                                        <i class="fas fa-file-excel text-success"></i>
                                                     {% elif doc.file_type == 'PPTX' or doc.file_type == 'PPT' %}
-                                                        <i class="fas fa-file-powerpoint fa-2x text-warning"></i>
+                                                        <i class="fas fa-file-powerpoint text-warning"></i>
                                                     {% elif doc.file_type == 'JPG' or doc.file_type == 'PNG' or doc.file_type == 'GIF' %}
-                                                        <i class="fas fa-file-image fa-2x text-info"></i>
+                                                        <i class="fas fa-file-image text-info"></i>
                                                     {% else %}
-                                                        <i class="fas fa-file fa-2x text-secondary"></i>
+                                                        <i class="fas fa-file text-secondary"></i>
                                                     {% endif %}
                                                 </div>
                                                 <div>
@@ -188,7 +190,7 @@
                                                 <small class="text-muted">
                                                     <i class="fas fa-calendar me-1"></i> {{ doc.uploaded_at|date:"M d, Y" }}
                                                 </small>
-                                                <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                <a href="{{ doc.file.url }}" class="btn btn-sm btn-outline-accent" target="_blank">
                                                     <i class="fas fa-download me-1"></i> Download
                                                 </a>
                                             </div>
@@ -208,48 +210,40 @@
 
         <div class="col-md-4">
             <!-- Notifications -->
-            <div class="card border-0 shadow-sm mb-4" id="notifications-section">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card mb-4" id="notifications-section">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-bell me-2"></i>Notifications</h5>
                     {% if notifications %}
-                        <span class="badge bg-danger">{{ notifications|length }}</span>
+                        <span class="badge badge-open">{{ notifications|length }}</span>
                     {% endif %}
                 </div>
                 <div class="card-body p-0">
                     {% if notifications %}
-                        <div class="list-group list-group-flush">
+                        <div class="timeline">
                             {% for notification in notifications %}
-                                <div class="list-group-item border-start-0 border-end-0">
-                                    <div class="d-flex">
-                                        <div class="me-3">
-                                            {% if notification.notification_type == 'MESSAGE' %}
-                                                <div class="rounded-circle bg-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="fas fa-envelope text-white"></i>
-                                                </div>
-                                            {% elif notification.notification_type == 'DOCUMENT' %}
-                                                <div class="rounded-circle bg-success p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="fas fa-file-alt text-white"></i>
-                                                </div>
-                                            {% elif notification.notification_type == 'CASE_UPDATE' %}
-                                                <div class="rounded-circle bg-info p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="fas fa-briefcase text-white"></i>
-                                                </div>
-                                            {% elif notification.notification_type == 'TASK' %}
-                                                <div class="rounded-circle bg-warning p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="fas fa-tasks text-white"></i>
-                                                </div>
-                                            {% else %}
-                                                <div class="rounded-circle bg-secondary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                    <i class="fas fa-bell text-white"></i>
-                                                </div>
-                                            {% endif %}
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h6 class="mb-1">{{ notification.title }}</h6>
-                                                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                                <div class="timeline-item">
+                                    <div class="timeline-date">
+                                        {{ notification.created_at|timesince }} ago
+                                    </div>
+                                    <div class="timeline-content">
+                                        <div class="d-flex">
+                                            <div class="me-3">
+                                                {% if notification.notification_type == 'MESSAGE' %}
+                                                    <i class="fas fa-envelope text-primary"></i>
+                                                {% elif notification.notification_type == 'DOCUMENT' %}
+                                                    <i class="fas fa-file-alt text-success"></i>
+                                                {% elif notification.notification_type == 'CASE_UPDATE' %}
+                                                    <i class="fas fa-briefcase text-info"></i>
+                                                {% elif notification.notification_type == 'TASK' %}
+                                                    <i class="fas fa-tasks text-warning"></i>
+                                                {% else %}
+                                                    <i class="fas fa-bell text-secondary"></i>
+                                                {% endif %}
                                             </div>
-                                            <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                            <div class="flex-grow-1">
+                                                <h6 class="mb-1">{{ notification.title }}</h6>
+                                                <p class="mb-0 text-muted">{{ notification.message }}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -264,11 +258,11 @@
             </div>
 
             <!-- Upcoming Tasks -->
-            <div class="card border-0 shadow-sm mb-4">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Your Tasks</h5>
                     {% if tasks %}
-                        <span class="badge bg-primary">{{ tasks|length }}</span>
+                        <span class="badge badge-in-progress">{{ tasks|length }}</span>
                     {% endif %}
                 </div>
                 <div class="card-body p-0">
@@ -278,7 +272,7 @@
                                 <div class="list-group-item border-start-0 border-end-0 {% if task.is_overdue %}border-start border-danger border-5{% endif %}">
                                     <div class="d-flex w-100 justify-content-between mb-2">
                                         <h6 class="mb-0">{{ task.title }}</h6>
-                                        <span class="badge {% if task.status == 'PENDING' %}bg-warning{% elif task.status == 'IN_PROGRESS' %}bg-info{% else %}bg-success{% endif %}">
+                                        <span class="badge {% if task.status == 'PENDING' %}badge-in-progress{% elif task.status == 'IN_PROGRESS' %}badge-open{% else %}badge-closed{% endif %}">
                                             {{ task.get_status_display }}
                                         </span>
                                     </div>
@@ -287,7 +281,7 @@
                                         <small class="text-muted">
                                             <i class="fas fa-folder me-1"></i> {{ task.case.title }}
                                         </small>
-                                        <small class="{% if task.is_overdue %}text-danger fw-bold{% else %}text-muted{% endif %}">
+                                        <small class="{% if task.is_overdue %}text-burgundy fw-bold{% else %}text-muted{% endif %}">
                                             <i class="fas fa-calendar me-1"></i> Due: {{ task.due_date|date:"M d, Y" }}
                                         </small>
                                     </div>
@@ -303,25 +297,25 @@
             </div>
 
             <!-- Messages -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         <i class="fas fa-envelope me-2"></i>Messages
                         {% if unread_messages > 0 %}
-                            <span class="badge bg-danger ms-2">{{ unread_messages }}</span>
+                            <span class="badge badge-open ms-2">{{ unread_messages }}</span>
                         {% endif %}
                     </h5>
-                    <a href="{% url 'portal:messages' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                    <a href="{% url 'portal:messages' %}" class="btn btn-sm btn-outline-accent">View All</a>
                 </div>
                 <div class="card-body p-0">
                     {% if message_threads %}
                         <div class="list-group list-group-flush">
                             {% for thread in message_threads %}
-                                <a href="{% url 'portal:message_thread' thread.id %}" class="list-group-item list-group-item-action border-start-0 border-end-0 {% if thread.unread > 0 %}border-start border-primary border-5{% endif %}">
+                                <a href="{% url 'portal:message_thread' thread.id %}" class="list-group-item list-group-item-action border-start-0 border-end-0 message-thread {% if thread.unread > 0 %}unread{% endif %}">
                                     <div class="d-flex">
                                         <div class="me-3">
-                                            <div class="rounded-circle bg-primary p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                <i class="fas fa-envelope{% if thread.unread > 0 %}-open{% endif %} text-white"></i>
+                                            <div class="avatar" style="width: 40px; height: 40px;">
+                                                <i class="fas fa-envelope{% if thread.unread > 0 %}-open{% endif %}"></i>
                                             </div>
                                         </div>
                                         <div class="flex-grow-1">
@@ -330,7 +324,7 @@
                                                 <small class="text-muted">{{ thread.updated_at|timesince }} ago</small>
                                             </div>
                                             {% if thread.unread > 0 %}
-                                                <span class="badge bg-danger">{{ thread.unread }} new</span>
+                                                <span class="badge badge-open">{{ thread.unread }} new</span>
                                             {% endif %}
                                             <div class="mt-1">
                                                 <small class="text-muted">
@@ -345,7 +339,7 @@
                             {% endfor %}
                         </div>
                         <div class="p-3 text-center">
-                            <a href="{% url 'portal:create_message' %}" class="btn btn-primary">
+                            <a href="{% url 'portal:create_message' %}" class="btn btn-accent">
                                 <i class="fas fa-plus-circle me-2"></i>New Message
                             </a>
                         </div>
@@ -354,7 +348,7 @@
                             <i class="fas fa-info-circle me-2"></i> No message threads.
                         </div>
                         <div class="p-3 text-center">
-                            <a href="{% url 'portal:create_message' %}" class="btn btn-primary">
+                            <a href="{% url 'portal:create_message' %}" class="btn btn-accent">
                                 <i class="fas fa-plus-circle me-2"></i>Start a Conversation
                             </a>
                         </div>

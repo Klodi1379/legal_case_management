@@ -26,8 +26,21 @@ var/
 *.pyc
 db.sqlite3
 media/
-static/
+staticfiles/
 local_settings.py
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# Security
+*.pem
+*.key
 
 # Virtual Environment
 venv/

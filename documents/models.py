@@ -188,6 +188,28 @@ class DocumentTagged(models.Model):
         verbose_name = _('Tagged Document')
         verbose_name_plural = _('Tagged Documents')
 
+
+class DocumentVersion(models.Model):
+    """
+    Versions of documents for tracking changes over time.
+    """
+    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='versions')
+    version_number = models.PositiveIntegerField(_('Version Number'))
+    file = models.FileField(_('File'), upload_to='document_versions/')
+    comment = models.TextField(_('Comment'), blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+                                 related_name='document_versions', verbose_name=_('Created By'))
+    created_at = models.DateTimeField(_('Created At'), auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.document.title} - v{self.version_number}"
+
+    class Meta:
+        verbose_name = _('Document Version')
+        verbose_name_plural = _('Document Versions')
+        ordering = ['-version_number']
+        unique_together = ['document', 'version_number']
+
 class DocumentTemplate(models.Model):
     """
     Templates for generating legal documents.

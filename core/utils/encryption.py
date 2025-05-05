@@ -1,147 +1,221 @@
 """
-Encryption utilities for the legal case management system.
-
-This module provides encryption and decryption functions for sensitive data,
-including document storage and personal information.
+Encryption utilities for handling sensitive data.
 """
-
-import os
 import base64
+import os
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
+from core.exceptions import SecurityException
 
-# Check if encryption key is set in settings
-if not hasattr(settings, 'ENCRYPTION_KEY'):
-    raise ImproperlyConfigured(
-        "ENCRYPTION_KEY must be set in settings for encryption to work. "
-        "Generate a key with `python -c \"from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())\"`"
-    )
 
-def get_encryption_key(salt=None):
+class EncryptionService:
     """
-    Get or derive an encryption key.
+    Service for encrypting and decrypting sensitive data.
+    """
 
-    Args:
-        salt: Optional salt for key derivation
+    def __init__(self):
+        """Initialize encryption service with key from settings."""
+        self.key = settings.ENCRYPTION_KEY
+        if not self.key:
+            raise SecurityException("Encryption key not configured")
+
+        # Convert string key to bytes if needed
+        if isinstance(self.key, str):
+            self.key = self.key.encode()
+
+        self.fernet = Fernet(self.key)
+
+    def encrypt(self, data: str) -> str:
+        """
+        Encrypt string data.
+
+        Args:
+            data: String data to encrypt
+
+        Returns:
+            Encrypted data as base64 string
+        """
+        if not data:
+            return data
+
+        try:
+            # Convert string to bytes
+            data_bytes = data.encode()
+
+            # Encrypt the data
+            encrypted_bytes = self.fernet.encrypt(data_bytes)
+
+            # Return as base64 string for storage
+            return base64.b64encode(encrypted_bytes).decode()
+
+        except Exception as e:
+            raise SecurityException(f"Encryption failed: {str(e)}")
+
+    def decrypt(self, encrypted_data: str) -> str:
+        """
+        Decrypt encrypted string data.
+
+        Args:
+            encrypted_data: Base64 encoded encrypted data
+
+        Returns:
+            Decrypted string data
+        """
+        if not encrypted_data:
+            return encrypted_data
+
+        try:
+            # Decode from base64
+            encrypted_bytes = base64.b64decode(encrypted_data.encode())
+
+            # Decrypt the data
+            decrypted_bytes = self.fernet.decrypt(encrypted_bytes)
+
+            # Return as string
+            return decrypted_bytes.decode()
+
+        except Exception as e:
+            raise SecurityException(f"Decryption failed: {str(e)}")
+
+
+def generate_encryption_key() -> str:
+    """
+    Generate a new Fernet encryption key.
+
+    This should be used to generate keys for new deployments.
+    The key should be stored securely and never committed to version control.
 
     Returns:
-        A Fernet key for encryption/decryption
+        Base64-encoded encryption key
+    """
+    return Fernet.generate_key().decode()
+
+
+def derive_key_from_password(password: str, salt: bytes = None) -> tuple[str, bytes]:
+    """
+    Derive an encryption key from a password using PBKDF2.
+
+    Args:
+        password: Password to derive key from
+        salt: Salt for key derivation (generated if not provided)
+
+    Returns:
+        Tuple of (base64-encoded key, salt)
     """
     if salt is None:
-        # Use the key directly if no salt is provided
-        try:
-            key = settings.ENCRYPTION_KEY.encode()
-            return Fernet(key)
-        except Exception as e:
-            raise ImproperlyConfigured(f"Invalid ENCRYPTION_KEY: {str(e)}")
-    else:
-        # Derive a key using the salt and the master key
-        kdf = PBKDF2HMAC(
-            algorithm=hashes.SHA256(),
-            length=32,
-            salt=salt,
-            iterations=100000,
-        )
-        key = base64.urlsafe_b64encode(kdf.derive(settings.ENCRYPTION_KEY.encode()))
-        return Fernet(key)
+        salt = os.urandom(16)
 
-def encrypt_file(file_data, salt=None):
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=salt,
+        iterations=100000,
+    )
+
+    key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+
+    return key.decode(), salt
+
+
+# Global encryption service instance
+encryption_service = None
+
+def get_encryption_service() -> EncryptionService:
     """
-    Encrypt file data.
-
-    Args:
-        file_data: The file data to encrypt
-        salt: Optional salt for key derivation
+    Get or create the global encryption service instance.
 
     Returns:
-        Encrypted file data
+        EncryptionService instance
     """
-    if not file_data:
-        return None
+    global encryption_service
 
-    # Get encryption key
-    fernet = get_encryption_key(salt)
+    if encryption_service is None:
+        encryption_service = EncryptionService()
 
-    # Encrypt the data
-    if isinstance(file_data, str):
-        file_data = file_data.encode()
+    return encryption_service
 
-    return fernet.encrypt(file_data)
 
-def decrypt_file(encrypted_data, salt=None):
+def encrypt_text(text: str) -> str:
     """
-    Decrypt file data.
+    Encrypt text using the global encryption service.
 
     Args:
-        encrypted_data: The encrypted file data
-        salt: Optional salt used for encryption
+        text: Text to encrypt
 
     Returns:
-        Decrypted file data
-    """
-    if not encrypted_data:
-        return None
-
-    # Get encryption key
-    fernet = get_encryption_key(salt)
-
-    # Decrypt the data
-    return fernet.decrypt(encrypted_data)
-
-
-def encrypt_text(text, salt=None):
-    """
-    Encrypt text data.
-
-    Args:
-        text: The text to encrypt
-        salt: Optional salt for key derivation
-
-    Returns:
-        Encrypted text data as a base64-encoded string
+        Encrypted text as base64 string
     """
     if not text:
-        return None
+        return text
 
-    # Get encryption key
-    fernet = get_encryption_key(salt)
-
-    # Ensure text is bytes
-    if isinstance(text, str):
-        text = text.encode('utf-8')
-
-    # Encrypt the data
-    encrypted_data = fernet.encrypt(text)
-
-    # Return as base64 string for storage
-    return base64.b64encode(encrypted_data).decode('ascii')
+    service = get_encryption_service()
+    return service.encrypt(text)
 
 
-def decrypt_text(encrypted_text, salt=None):
+def decrypt_text(encrypted_text: str) -> str:
     """
-    Decrypt text data.
+    Decrypt text using the global encryption service.
 
     Args:
-        encrypted_text: The encrypted text as a base64-encoded string
+        encrypted_text: Encrypted text to decrypt
+
+    Returns:
+        Decrypted text
+    """
+    if not encrypted_text:
+        return encrypted_text
+
+    service = get_encryption_service()
+    return service.decrypt(encrypted_text)
+
+
+def encrypt_file(file_content: bytes, salt: bytes = None) -> bytes:
+    """
+    Encrypt file content.
+
+    Args:
+        file_content: File content as bytes
+        salt: Optional salt for encryption
+
+    Returns:
+        Encrypted file content as bytes
+    """
+    if not file_content:
+        return file_content
+
+    # Use the encryption service for now
+    # In a real implementation, we might want to use a different approach for files
+    service = get_encryption_service()
+
+    # Convert to base64 string first (since encrypt expects string)
+    content_b64 = base64.b64encode(file_content).decode()
+
+    # Encrypt and convert back to bytes
+    encrypted = service.encrypt(content_b64)
+    return encrypted.encode()
+
+
+def decrypt_file(encrypted_content: bytes, salt: bytes = None) -> bytes:
+    """
+    Decrypt file content.
+
+    Args:
+        encrypted_content: Encrypted file content as bytes
         salt: Optional salt used for encryption
 
     Returns:
-        Decrypted text as a string
+        Decrypted file content as bytes
     """
-    if not encrypted_text:
-        return None
+    if not encrypted_content:
+        return encrypted_content
 
-    # Get encryption key
-    fernet = get_encryption_key(salt)
+    # Use the encryption service
+    service = get_encryption_service()
 
-    # Decode from base64
-    encrypted_data = base64.b64decode(encrypted_text)
+    # Decrypt the content (convert bytes to string first)
+    decrypted_b64 = service.decrypt(encrypted_content.decode())
 
-    # Decrypt the data
-    decrypted_data = fernet.decrypt(encrypted_data)
-
-    # Return as string
-    return decrypted_data.decode('utf-8')
+    # Convert from base64 back to bytes
+    return base64.b64decode(decrypted_b64)

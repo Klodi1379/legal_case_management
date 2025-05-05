@@ -1,4 +1,5 @@
 <!-- templates/includes/navbar.html -->
+{% load ai_service_tags %}
 <nav class="navbar navbar-expand-lg fixed-top" style="background-color: var(--primary-color); box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
     <div class="container">
         <a class="navbar-brand" href="{% url 'core:home' %}">
@@ -61,8 +62,7 @@
                        data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-file-alt me-1"></i> Documents
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow" style="background-color: var(--secondary-color);"
-                        aria-labelledby="documentsDropdown">
+                    <ul class="dropdown-menu dropdown-menu-dark border-0 shadow" style="background-color: var(--secondary-color);" aria-labelledby="documentsDropdown">
                         <li><a class="dropdown-item text-white" href="{% url 'documents:document_upload' %}">
                             <i class="fas fa-upload me-2"></i> Upload Document
                         </a></li>
@@ -103,11 +103,18 @@
                 {% endif %}
 
                 <!-- AI Services for all users -->
+                {% get_active_model as active_model %}
+                {% is_using_mock_service as using_mock %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle text-white" href="#" id="aiServicesDropdown" role="button"
                        data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-robot me-1"></i> AI Services
-                        <span class="badge rounded-pill ms-1" style="background-color: var(--accent-color); color: var(--primary-color); font-size: 0.7rem; vertical-align: middle;">Gemma 3</span>
+                        {% if active_model %}
+                        <span class="badge rounded-pill ms-1" style="background-color: var(--accent-color); color: var(--primary-color); font-size: 0.7rem; vertical-align: middle;">
+                            {{ active_model.model_type|title }}
+                            {% if using_mock %}<i class="fas fa-exclamation-triangle ms-1" title="Using mock service"></i>{% endif %}
+                        </span>
+                        {% endif %}
                     </a>
                     <ul class="dropdown-menu dropdown-menu-dark border-0 shadow" style="background-color: var(--secondary-color);"
                         aria-labelledby="aiServicesDropdown">
@@ -127,7 +134,14 @@
                         <li>
                             <div class="dropdown-item text-white">
                                 <i class="fas fa-microchip me-2"></i>
-                                <span style="font-style: italic; color: var(--accent-color);">gemma-3-12b-it-qat</span>
+                                {% if active_model %}
+                                <span style="font-style: italic; color: var(--accent-color);">{{ active_model.name }}</span>
+                                {% if using_mock %}
+                                <span class="badge bg-warning text-dark ms-2" style="font-size: 0.7rem;">Mock Mode</span>
+                                {% endif %}
+                                {% else %}
+                                <span style="font-style: italic; color: var(--accent-color);">No active model</span>
+                                {% endif %}
                             </div>
                         </li>
                         <li><hr class="dropdown-divider" style="border-color: var(--accent-color);"></li>

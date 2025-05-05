@@ -1,5 +1,6 @@
 {% extends 'ai_services/base.html' %}
 {% load static %}
+{% load ai_service_tags %}
 
 {% block page_title %}Analysis Result{% endblock %}
 
@@ -75,7 +76,24 @@
                     </span>
                 </div>
                 <div class="card-body">
-                    {% if analysis.status == 'completed' %}
+                    {% if analysis.status == 'COMPLETED' %}
+                        {% if analysis.result.raw_response.used_fallback or analysis.result.raw_response.mock_response %}
+                        <div class="alert alert-warning mb-3">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div>
+                                    <strong>Mock Response Used</strong>
+                                    <p class="mb-0 small">This analysis was generated using a mock AI service because the real service was unavailable.</p>
+                                    {% if analysis.result.raw_response.original_error %}
+                                    <p class="mb-0 small text-danger">Error: {{ analysis.result.raw_response.original_error }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         {% if analysis.analysis_type == 'key_points' %}
                             <h6 class="fw-bold mb-3">Key Points Extracted</h6>
                             <div class="mb-4">
@@ -87,7 +105,7 @@
                             </div>
                         {% else %}
                             <div class="result-container">
-                                {{ analysis.result|linebreaks }}
+                                {{ analysis.result.output_text|linebreaks }}
                             </div>
                         {% endif %}
 
@@ -202,11 +220,20 @@
                     </div>
                     <div class="metadata-item">
                         <div class="metadata-label">AI Model:</div>
-                        <div>{{ analysis.model.name }}</div>
+                        <div>
+                            {{ analysis.llm_model.name }}
+                            {% if analysis.result.raw_response.used_fallback or analysis.result.raw_response.mock_response %}
+                            <span class="badge bg-warning text-dark ms-1" style="font-size: 0.7rem;">Mock</span>
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="metadata-item">
                         <div class="metadata-label">Model Version:</div>
-                        <div>{{ analysis.model.model_type }}-{{ analysis.model.model_version }}</div>
+                        <div>{{ analysis.llm_model.model_type|title }}-{{ analysis.llm_model.model_version }}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Deployment:</div>
+                        <div>{{ analysis.llm_model.get_deployment_type_display }}</div>
                     </div>
                     <div class="metadata-item">
                         <div class="metadata-label">Requested By:</div>

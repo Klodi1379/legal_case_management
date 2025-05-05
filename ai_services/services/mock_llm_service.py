@@ -73,7 +73,7 @@ class MockGemmaService:
                     # Look for the preferred model (gemma-3-12b-it-qat)
                     preferred_model = "gemma-3-12b-it-qat"
                     model_to_use = None
-                    
+
                     # First try to find the exact preferred model
                     if preferred_model in available_models:
                         model_to_use = preferred_model
@@ -85,7 +85,7 @@ class MockGemmaService:
                                 model_to_use = model_name
                                 logger.info(f"Found similar model to preferred: {model_name}")
                                 break
-                    
+
                     # If still no model found, use the first available
                     if not model_to_use and available_models:
                         model_to_use = available_models[0]
@@ -197,6 +197,8 @@ class MockGemmaService:
                 generated_text = self._generate_analysis_response(prompt)
             elif "research" in prompt.lower():
                 generated_text = self._generate_research_response(prompt)
+            elif "case management" in prompt.lower() or "legal case" in prompt.lower():
+                generated_text = self._generate_case_management_response(prompt)
             else:
                 generated_text = self._generate_generic_response(prompt)
 
@@ -230,6 +232,8 @@ class MockGemmaService:
                 generated_text = self._generate_analysis_response(prompt)
             elif "research" in prompt.lower():
                 generated_text = self._generate_research_response(prompt)
+            elif "case management" in prompt.lower() or "legal case" in prompt.lower():
+                generated_text = self._generate_case_management_response(prompt)
             else:
                 generated_text = self._generate_generic_response(prompt)
 
@@ -336,6 +340,83 @@ Courts have significantly evolved their interpretation of force majeure clauses 
 3. Clearly define the standard for causation (impossibility vs. impracticability)
 4. Establish detailed notice requirements and procedures
 5. Consider including provisions for contract adaptation rather than mere termination or suspension"""
+
+    def _generate_case_management_response(self, prompt: str) -> str:
+        """Generate a detailed response about legal case management systems."""
+        return """# Key Components of a Legal Case Management System
+
+As a legal assistant, I can provide a comprehensive overview of the essential components that make up an effective legal case management system:
+
+## 1. Case Information Management
+- **Case Intake & Classification**: Tools for capturing initial case details, categorizing by practice area, and assigning priority levels
+- **Case Timeline Tracking**: Visual representation of case progress, key dates, and statute of limitations monitoring
+- **Party Management**: Storage of all parties involved in a case (clients, opposing parties, witnesses, experts, etc.)
+- **Court Information**: Integration with court systems for docket information, filing deadlines, and judge preferences
+
+## 2. Document Management
+- **Document Repository**: Centralized storage for all case-related documents with version control
+- **Document Generation**: Templates for creating standard legal documents with auto-population of case data
+- **Document Analysis**: AI-powered tools for reviewing and extracting key information from legal documents
+- **E-Filing Integration**: Direct connection to court e-filing systems for streamlined submissions
+
+## 3. Client Relationship Management
+- **Client Profiles**: Comprehensive client information including contact details, communication preferences, and relationship history
+- **Client Portal**: Secure interface for clients to view case status, access documents, and communicate with legal team
+- **Conflict Checking**: Automated tools to identify potential conflicts of interest with new clients or cases
+- **Client Billing**: Integration with billing systems for time tracking, expense recording, and invoice generation
+
+## 4. Workflow Automation
+- **Task Management**: Assignment and tracking of case-related tasks with due dates and priorities
+- **Workflow Templates**: Predefined sequences of tasks for common case types to ensure consistency
+- **Notification System**: Automated alerts for upcoming deadlines, new assignments, and status changes
+- **Approval Processes**: Structured workflows for document review, settlement approvals, and other key decisions
+
+## 5. Calendar & Scheduling
+- **Court Date Management**: Tracking of hearings, trials, and other court appearances
+- **Team Scheduling**: Coordination of attorney and staff availability for case-related events
+- **Deadline Calculation**: Automated calculation of procedural deadlines based on jurisdiction rules
+- **Calendar Integration**: Synchronization with personal calendars (Outlook, Google Calendar, etc.)
+
+## 6. Communication Tools
+- **Internal Messaging**: Secure communication between team members about case matters
+- **Client Communication**: Tracked email and messaging with clients, including template responses
+- **External Correspondence**: Management of communications with opposing counsel, courts, and other parties
+- **Call Logging**: Recording of phone conversations with automatic association to relevant cases
+
+## 7. Time & Billing Integration
+- **Time Tracking**: Tools for recording billable hours directly associated with specific cases
+- **Expense Management**: Tracking of case-related expenses for client billing and cost recovery
+- **Budget Monitoring**: Comparison of actual time/expenses against estimated budgets
+- **Invoice Generation**: Creation of detailed client invoices based on recorded time and expenses
+
+## 8. Reporting & Analytics
+- **Case Performance Metrics**: Analysis of case outcomes, durations, and profitability
+- **Attorney Productivity**: Measurement of individual and team performance metrics
+- **Financial Reporting**: Analysis of revenue, receivables, and profitability by practice area
+- **Custom Dashboards**: Configurable views of key performance indicators for different user roles
+
+## 9. Security & Compliance
+- **Access Controls**: Role-based permissions to ensure appropriate information access
+- **Audit Trails**: Comprehensive logging of all system activities for compliance and security
+- **Data Encryption**: Protection of sensitive client and case information
+- **Compliance Tools**: Features to ensure adherence to relevant regulations (GDPR, HIPAA, etc.)
+
+## 10. AI & Advanced Features
+- **Legal Research Integration**: Connection to legal research platforms with AI-assisted search
+- **Predictive Analytics**: Tools to forecast case outcomes, costs, and durations
+- **Document Analysis**: AI-powered contract review and due diligence assistance
+- **Knowledge Management**: Systems to capture and leverage institutional knowledge and precedents
+
+## Implementation Considerations
+For successful implementation, consider these factors:
+- **Scalability**: Ability to grow with the firm's needs
+- **Integration Capabilities**: Compatibility with existing systems (accounting, email, etc.)
+- **Mobile Access**: Secure access from smartphones and tablets
+- **Training & Support**: Comprehensive onboarding and ongoing technical assistance
+- **Customization Options**: Flexibility to adapt to specific practice areas and firm workflows
+
+A well-designed legal case management system should streamline administrative tasks, improve collaboration, enhance client service, and ultimately allow legal professionals to focus more on practicing law rather than managing information.
+"""
 
     def _generate_generic_response(self, prompt: str) -> str:
         """Generate a generic response for other types of prompts."""

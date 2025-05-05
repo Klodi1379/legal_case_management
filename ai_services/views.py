@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.admin.views.decorators import staff_member_required
 from django.db.models import Count, Q
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +30,8 @@ def ai_dashboard(request):
     """Dashboard for AI services."""
     # Get statistics
     total_analyses = AIAnalysisRequest.objects.count()
-    completed_analyses = AIAnalysisRequest.objects.filter(status='completed').count()
-    failed_analyses = AIAnalysisRequest.objects.filter(status='failed').count()
+    completed_analyses = AIAnalysisRequest.objects.filter(status='COMPLETED').count()
+    failed_analyses = AIAnalysisRequest.objects.filter(status='FAILED').count()
 
     # Get recent analyses
     recent_analyses = AIAnalysisRequest.objects.select_related(
@@ -45,6 +46,13 @@ def ai_dashboard(request):
         count=Count('id')
     ).order_by('-count')
 
+    # Get vector stores and document embeddings
+    vector_stores = VectorStore.objects.all()
+    document_embeddings = DocumentEmbedding.objects.all()
+
+    # Get prompt templates
+    prompt_templates = PromptTemplate.objects.all()
+
     context = {
         'total_analyses': total_analyses,
         'completed_analyses': completed_analyses,
@@ -52,6 +60,10 @@ def ai_dashboard(request):
         'recent_analyses': recent_analyses,
         'active_models': active_models,
         'analysis_by_type': analysis_by_type,
+        'vector_stores': vector_stores,
+        'document_embeddings': document_embeddings,
+        'prompt_templates': prompt_templates,
+        'now': timezone.now(),
     }
 
     return render(request, 'ai_services/dashboard.html', context)
@@ -204,7 +216,7 @@ def submit_analysis(request, document_id):
             llm_service = AIServiceFactory.get_llm_service(model)
 
             # Update status
-            analysis_request.status = 'processing'
+            analysis_request.status = 'PROCESSING'
             analysis_request.save()
 
             # Process request
@@ -213,21 +225,32 @@ def submit_analysis(request, document_id):
             # Save result
             AIAnalysisResult.objects.create(
                 request=analysis_request,
-                result=result['text'],
+                output_text=result['text'],
+                raw_response=result,
+                tokens_used=result.get('tokens_used', 0),
                 processing_time=result.get('processing_time', 0),
                 created_at=timezone.now()
             )
 
             # Update request status
-            analysis_request.status = 'completed'
+            analysis_request.status = 'COMPLETED'
             analysis_request.completed_at = timezone.now()
             analysis_request.save()
 
         except Exception as e:
             logger.error(f"Error processing analysis request: {str(e)}")
-            analysis_request.status = 'failed'
-            analysis_request.error_message = str(e)
+            analysis_request.status = 'FAILED'
             analysis_request.save()
+
+            # Create result with error
+            AIAnalysisResult.objects.create(
+                analysis_request=analysis_request,
+                output_text="Error processing request",
+                raw_response={"error": str(e)},
+                has_error=True,
+                error_message=str(e),
+                created_at=timezone.now()
+            )
 
         messages.success(request, "Analysis request submitted successfully.")
         return redirect('ai_services:analysis_result', analysis_id=analysis_request.id)
@@ -253,9 +276,9 @@ def analysis_result(request, analysis_id):
 
     # For key points analysis, parse the result into a list
     key_points = []
-    if analysis.status == 'completed' and analysis.analysis_type == 'key_points' and analysis.result:
+    if analysis.status == 'COMPLETED' and analysis.analysis_type == 'KEY_POINTS' and hasattr(analysis, 'result'):
         # Simple parsing - in a real implementation, this would be more sophisticated
-        key_points = [point.strip() for point in analysis.result.result.split('\n') if point.strip()]
+        key_points = [point.strip() for point in analysis.result.output_text.split('\n') if point.strip()]
 
     context = {
         'analysis': analysis,
@@ -325,7 +348,8 @@ def submit_research(request):
                         llm_model=model,
                         prompt_template=prompt_template,
                         case_id=case_id,
-                        prompt=prompt,
+                        combined_prompt=prompt,
+                        input_text=query,
                         status='PENDING',
                         requested_by=request.user,
                         created_at=timezone.now()
@@ -342,8 +366,10 @@ def submit_research(request):
 
                         # Save result
                         AIAnalysisResult.objects.create(
-                            request=analysis_request,
-                            result=result['text'],
+                            analysis_request=analysis_request,
+                            output_text=result['text'],
+                            raw_response=result,
+                            tokens_used=result.get('tokens_used', 0),
                             processing_time=result.get('processing_time', 0),
                             created_at=timezone.now()
                         )
@@ -434,7 +460,8 @@ def submit_document_generation(request):
                         llm_model=model,
                         prompt_template=prompt_template,
                         case=case,
-                        prompt=prompt,
+                        combined_prompt=prompt,
+                        input_text=content,
                         status='PENDING',
                         requested_by=request.user,
                         created_at=timezone.now()
@@ -451,8 +478,10 @@ def submit_document_generation(request):
 
                         # Save result
                         AIAnalysisResult.objects.create(
-                            request=analysis_request,
-                            result=result['text'],
+                            analysis_request=analysis_request,
+                            output_text=result['text'],
+                            raw_response=result,
+                            tokens_used=result.get('tokens_used', 0),
                             processing_time=result.get('processing_time', 0),
                             created_at=timezone.now()
                         )
@@ -482,9 +511,10 @@ def submit_document_generation(request):
                         from .models import AIGeneratedDocument
                         AIGeneratedDocument.objects.create(
                             title=document_title,
-                            analysis_result_id=analysis_request.id,
+                            analysis_result=analysis_request.result,
                             document=document,
-                            created_by=request.user
+                            created_by=request.user,
+                            case=case
                         )
 
                         messages.success(request, "Document generated successfully.")

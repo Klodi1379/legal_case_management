@@ -35,7 +35,7 @@ SERVICE_HEALTH_CACHE_EXPIRY = getattr(settings, 'SERVICE_HEALTH_CACHE_EXPIRY', 3
 SERVICE_HEALTH_CHECK_INTERVAL = getattr(settings, 'SERVICE_HEALTH_CHECK_INTERVAL', 60)  # 1 minute
 
 # Request settings
-LLM_REQUEST_TIMEOUT = getattr(settings, 'LLM_REQUEST_TIMEOUT', 60)
+LLM_REQUEST_TIMEOUT = getattr(settings, 'LLM_REQUEST_TIMEOUT', 300)  # 5 minutes timeout for LLM requests
 DEFAULT_MAX_TOKENS = getattr(settings, 'DEFAULT_MAX_TOKENS', 4096)
 DEFAULT_TEMPERATURE = getattr(settings, 'DEFAULT_TEMPERATURE', 0.7)
 

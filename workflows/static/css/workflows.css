@@ -1,0 +1,151 @@
+/* Workflow styles */
+
+/* Timeline styles */
+.timeline {
+    position: relative;
+    padding-left: 30px;
+    margin-top: 20px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-left: 2px solid #e9ecef;
+    padding-left: 20px;
+}
+
+.timeline-item:last-child {
+    border-left: 2px solid transparent;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -10px;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    background-color: white;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    padding-left: 10px;
+}
+
+/* Task priority indicators */
+.priority-urgent {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+.priority-high {
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.priority-normal {
+    color: #212529;
+}
+
+.priority-low {
+    color: #6c757d;
+}
+
+/* Workflow step visualization */
+.workflow-steps {
+    display: flex;
+    overflow-x: auto;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+}
+
+.workflow-step {
+    flex: 0 0 auto;
+    width: 150px;
+    text-align: center;
+    padding: 10px;
+    margin-right: 30px;
+    position: relative;
+    border-radius: 5px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+}
+
+.workflow-step.active {
+    background-color: #e6f7ff;
+    border-color: #91d5ff;
+    font-weight: bold;
+}
+
+.workflow-step.completed {
+    background-color: #f6ffed;
+    border-color: #b7eb8f;
+}
+
+.workflow-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -30px;
+    width: 30px;
+    height: 2px;
+    background-color: #dee2e6;
+}
+
+.workflow-step-icon {
+    margin-bottom: 5px;
+    font-size: 24px;
+}
+
+/* Task cards */
+.task-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+}
+
+.task-card .card-header {
+    padding: 10px 15px;
+}
+
+.task-card .card-body {
+    padding: 15px;
+}
+
+.task-card .task-priority {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+}
+
+/* Workflow instance status badges */
+.status-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: #e6f7ff;
+    color: #0d6efd;
+}
+
+.status-completed {
+    background-color: #f6ffed;
+    color: #52c41a;
+}
+
+.status-canceled {
+    background-color: #fff2f0;
+    color: #dc3545;
+}
+
+.status-suspended {
+    background-color: #fffbe6;
+    color: #faad14;
+}

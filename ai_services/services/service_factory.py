@@ -172,6 +172,17 @@ class AIServiceFactory:
                         error_message=error_message
                     )
 
+                    # Check for specific error messages
+                    if "Model unloaded" in error_message:
+                        logger.warning(f"Model was unloaded. This can happen when the model is not in use for a while or due to resource constraints.")
+                        logger.warning(f"You may need to reload the model in LM Studio or restart the LM Studio server.")
+                    elif "'messages' field is required" in error_message:
+                        logger.warning(f"API format error: 'messages' field is required. This suggests an issue with the API request format.")
+                        logger.warning(f"Check that the endpoint URL is correct and that the payload format matches the API expectations.")
+                    elif "Read timed out" in error_message or "timed out" in error_message.lower():
+                        logger.warning(f"Request timed out. This is common when running large models on CPU instead of GPU.")
+                        logger.warning(f"Try using a smaller model, shorter prompt, or increasing the timeout setting.")
+
                     logger.warning(f"Error using real LLM service: {error_message}. Falling back to mock service.")
 
                     # Use mock service as fallback
@@ -292,8 +303,7 @@ class AIServiceFactory:
 
         This method checks the cached health status of a service and
         returns whether it's considered healthy. If the health status
-        is not cached or expired, it returns True to allow the service
-        to be tried.
+        is not cached or expired, it performs a quick health check.
 
         Args:
             service_name: Name of the service
@@ -315,8 +325,45 @@ class AIServiceFactory:
         # Get current health status from monitor
         health = ServiceMonitor.get_service_health(service_name)
 
-        # Consider the service unhealthy if it's in "unhealthy" status
-        is_healthy = health["status"] != ServiceMonitor.STATUS_UNHEALTHY
+        # If the service has a recent failure, consider it unhealthy
+        if health["status"] == ServiceMonitor.STATUS_UNHEALTHY:
+            logger.warning(f"Service {service_name} is marked as unhealthy in the monitor")
+            cls._service_health_cache[cache_key] = False
+            cls._service_health_cache_time[cache_key] = now
+            return False
+
+        # Perform a quick health check by trying to connect to the endpoint
+        try:
+            logger.info(f"Performing health check for {service_name} at {endpoint}")
+
+            # Use a very short timeout to avoid blocking
+            import requests
+
+            # For OpenAI-compatible APIs, we need to use a different endpoint for health checks
+            if 'chat/completions' in endpoint or 'completions' in endpoint:
+                # Use the models endpoint for OpenAI-compatible APIs
+                base_url = endpoint.split('/v1/')[0]
+                health_endpoint = f"{base_url}/v1/models"
+                response = requests.get(
+                    health_endpoint,
+                    timeout=10.0,  # Increase timeout for health checks
+                    headers={"User-Agent": "HealthCheck/1.0"}
+                )
+            else:
+                # Use HEAD request for other endpoints
+                response = requests.head(
+                    endpoint,
+                    timeout=10.0,  # Increase timeout for health checks
+                    headers={"User-Agent": "HealthCheck/1.0"}
+                )
+
+            # Consider any response (even error responses) as a sign the service is up
+            is_healthy = True
+            logger.info(f"Health check for {service_name} successful: {response.status_code}")
+
+        except Exception as e:
+            logger.warning(f"Health check for {service_name} failed: {str(e)}")
+            is_healthy = False
 
         # Cache the result
         cls._service_health_cache[cache_key] = is_healthy
