@@ -141,6 +141,29 @@ ENABLE_AI_FEATURES = True
 DEFAULT_LLM_MODEL = 'gemma-3-12b-it-qat'
 DEFAULT_LLM_ENDPOINT = 'http://127.0.0.1:1234/v1/chat/completions'
 
+# Free AI Models (can be used without API keys)
+FREE_AI_MODELS = [
+    'ollama',
+    'gpt4free',
+]
+
+# AI Provider Settings
+AI_PROVIDERS = {
+    'openai': {
+        'api_key': os.environ.get('OPENAI_API_KEY', ''),
+        'organization': os.environ.get('OPENAI_ORGANIZATION', ''),
+    },
+    'anthropic': {
+        'api_key': os.environ.get('ANTHROPIC_API_KEY', ''),
+    },
+    'openrouter': {
+        'api_key': os.environ.get('OPENROUTER_API_KEY', ''),
+    },
+    'groq': {
+        'api_key': os.environ.get('GROQ_API_KEY', ''),
+    },
+}
+
 # REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

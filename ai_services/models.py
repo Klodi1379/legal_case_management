@@ -18,34 +18,58 @@ class LLMModel(models.Model):
     Configuration for an LLM model.
     """
     MODEL_TYPE_CHOICES = (
+        # Local models
         ('gemma_3', 'Gemma 3'),
         ('gemma_2', 'Gemma 2'),
         ('llama_3', 'Llama 3'),
         ('mistral', 'Mistral'),
-        ('other', 'Other Open Source Model'),
+        ('ollama', 'Ollama'),
+        # Cloud providers
+        ('openai', 'OpenAI'),
+        ('anthropic', 'Anthropic (Claude)'),
+        ('openrouter', 'OpenRouter'),
+        ('groq', 'Groq'),
+        ('together', 'Together AI'),
+        ('replicate', 'Replicate'),
+        ('huggingface', 'Hugging Face'),
+        ('cohere', 'Cohere'),
+        # Free models
+        ('gpt4free', 'GPT4Free'),
+        ('other', 'Other'),
     )
     DEPLOYMENT_TYPE_CHOICES = (
         ('local', 'Local Deployment'),
         ('containerized', 'Containerized'),
         ('api', 'API Service'),
         ('vllm', 'vLLM Deployment'),
+        ('ollama', 'Ollama Local'),
+        ('lm_studio', 'LM Studio'),
     )
 
     name = models.CharField(_("Model Name"), max_length=100)
-    model_type = models.CharField(_("Model Type"), max_length=20, choices=MODEL_TYPE_CHOICES, default='gemma_3')
-    model_version = models.CharField(_("Model Version"), max_length=50, default='3-12b-it-qat')
+    model_type = models.CharField(_("Model Type"), max_length=20, choices=MODEL_TYPE_CHOICES, default='openai')
+    model_version = models.CharField(_("Model Version"), max_length=50, blank=True)
     deployment_type = models.CharField(_("Deployment Type"), max_length=20, choices=DEPLOYMENT_TYPE_CHOICES, default='api')
     endpoint_url = models.URLField(_("Endpoint URL"), max_length=255)
     api_key = models.CharField(_("API Key"), max_length=255, blank=True, null=True)
+    api_key_name = models.CharField(_("API Key Name/Header"), max_length=50, blank=True, help_text=_("e.g., 'Authorization' or 'x-api-key'"))
+    organization_id = models.CharField(_("Organization ID"), max_length=100, blank=True, null=True, help_text=_("For OpenAI organization ID"))
     max_tokens = models.IntegerField(_("Max Tokens"), default=4096)
     temperature = models.FloatField(_("Temperature"), default=0.7)
+    top_p = models.FloatField(_("Top P"), default=1.0, null=True, blank=True)
+    frequency_penalty = models.FloatField(_("Frequency Penalty"), default=0.0, null=True, blank=True)
+    presence_penalty = models.FloatField(_("Presence Penalty"), default=0.0, null=True, blank=True)
     quantization = models.CharField(_("Quantization"), max_length=20, blank=True, help_text=_("Model quantization (e.g., 4bit, 8bit)"))
     is_active = models.BooleanField(_("Is Active"), default=True)
+    is_free = models.BooleanField(_("Is Free"), default=False, help_text=_("Whether this model is free to use"))
+    cost_per_1k_tokens = models.DecimalField(_("Cost per 1K tokens"), max_digits=10, decimal_places=6, null=True, blank=True)
     created_at = models.DateTimeField(_("Created At"), auto_now_add=True, null=True, blank=True)
     updated_at = models.DateTimeField(_("Updated At"), auto_now=True, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.name} ({self.model_type}-{self.model_version})"
+        if self.model_version:
+            return f"{self.name} ({self.model_type}-{self.model_version})"
+        return f"{self.name} ({self.model_type})"
 
     class Meta:
         verbose_name = _("LLM Model")
